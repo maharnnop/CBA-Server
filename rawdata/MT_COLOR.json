@@ -1,0 +1,171 @@
+{
+"value": [
+	{
+		"COLORCODE" : 9999,
+		"COLORNAMETH" : ".",
+		"COLORNAMEENG" : ".",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 9,
+		"COLORNAMETH" : "สีเทา",
+		"COLORNAMEENG" : "gray",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 10,
+		"COLORNAMETH" : "สีฟ้า",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 11,
+		"COLORNAMETH" : "สีเทาบรอนซ์",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 12,
+		"COLORNAMETH" : "สีดำ",
+		"COLORNAMEENG" : "black",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 1,
+		"COLORNAMETH" : "สีเทาดำ",
+		"COLORNAMEENG" : "grayblack",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 2,
+		"COLORNAMETH" : "สีแดง",
+		"COLORNAMEENG" : "red",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 3,
+		"COLORNAMETH" : "สีเขียว",
+		"COLORNAMEENG" : "green",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 4,
+		"COLORNAMETH" : "สีเหลือง",
+		"COLORNAMEENG" : "yellow",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 5,
+		"COLORNAMETH" : "สีเขียวเหลือง",
+		"COLORNAMEENG" : "greenyellow",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 6,
+		"COLORNAMETH" : "สีน้ำเงิน",
+		"COLORNAMEENG" : "blue",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 7,
+		"COLORNAMETH" : "สีขาว",
+		"COLORNAMEENG" : "white",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 8,
+		"COLORNAMETH" : "สีน้ำตาล",
+		"COLORNAMEENG" : "brown",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 13,
+		"COLORNAMETH" : "สีทอง",
+		"COLORNAMEENG" : "gold",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 14,
+		"COLORNAMETH" : "สีแดงฟ้า",
+		"COLORNAMEENG" : "redblue",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 15,
+		"COLORNAMETH" : "สีบรอนซ์เงิน",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 16,
+		"COLORNAMETH" : "สีบรอนซ์ทอง",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 17,
+		"COLORNAMETH" : "สีม่วง",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 18,
+		"COLORNAMETH" : "สีเทาม่วง",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 19,
+		"COLORNAMETH" : "สีเทาแดง",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 20,
+		"COLORNAMETH" : "สีเทาเขียว",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 21,
+		"COLORNAMETH" : "สีเทาน้ำเงิน",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 22,
+		"COLORNAMETH" : "สีขาวเทา",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 23,
+		"COLORNAMETH" : "สีฟ้าเทา",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 24,
+		"COLORNAMETH" : "สีฟ้าน้ำเงิน",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 25,
+		"COLORNAMETH" : "สีส้ม",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 26,
+		"COLORNAMETH" : "สีชมพู",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	},
+	{
+		"COLORCODE" : 27,
+		"COLORNAMETH" : "สีขาวดำ",
+		"COLORNAMEENG" : "null",
+		"FLAGDELETE" : "N"
+	}
+]}

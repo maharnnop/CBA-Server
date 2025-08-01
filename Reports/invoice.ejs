@@ -1,0 +1,356 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ใบแจ้งหนี้ / PREMIUM INVOICE</title>
+    <style>
+        body {
+            font-family: Calibri, sans-serif;
+            font-size:12px;
+            
+            width: 800px;
+            height: 1100px;
+            
+            /* border: 1px solid black; */
+        }
+        div{
+            margin: 0;
+        }
+        .container {
+            width: 100%;
+            /*margin: auto;*/
+        }
+
+        .header {
+            text-align: left;
+            /*padding-bottom: 5px;*/
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-right {
+            padding :7px 7px;
+            text-align: right;
+        }
+        .text-left {
+            padding :7px 0;
+            padding-left: 7px;
+            text-align: left;
+        }
+        .border {
+            margin:0;
+            border: 1px solid black;
+            
+           
+           height: 100%;
+            
+            /*padding: 5px;*/
+        }
+        .b-l {
+            margin:0;
+            border-left: 1px solid black;
+            padding-bottom: 1px;
+           height: 100%;
+            
+        }
+        .b-b {
+            margin:0;
+            border-bottom: 2px solid black;
+            
+           height: 100%;
+            
+        }
+        .center{
+            padding :7px 7px;
+        }
+
+        .grid {
+            display: grid;
+            width: 100%;
+            /*height: 100%;*/
+            grid-template-columns: repeat(8, 1fr) 30px;
+        }
+        p {
+        margin:0;
+        padding-left: 3px;
+        }
+        .address {
+            font-size: 0.8em;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+            .table, .table th, .table td {
+                border: 1px solid black;
+                padding: 5px;
+            }
+
+                .table th {
+                    text-align: left;
+                }
+
+        .footer {
+            font-size: 0.8em;
+            align-content:center;
+            /*margin-top: 20px;*/
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header grid" style="grid-template-rows: 15px 15px 30px repeat(8, 15px);">
+            <img  src="data:image/png;base64,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"  alt="Company Logo" width="70" height="70">
+            <p style="grid-area : 1/2/2/6 ;">บริษัท อะมิดี้ อินชัวร์รันซ์ โบรคเกอร์ จำกัด</p>
+            <p style="grid-area : 2/2/3/6 ;">AMITY INSURANCE BROKER CO.,LTD.</p>
+            <p style="grid-area : 3/2/5/6 ;" class="address">
+                67/213 หมู่ 3 ต.คลองหนึ่ง อ.คลองหลวง จ.ปทุมธานี 12120<br>
+                67/213 Moo 3 T.Khlong Nueng, A.Khlong Luang Phathumthani 12120<br>
+                TEL: 02-259-8899 FAX: 02-902-4459
+            </p>
+            <p style="grid-area : 4/7/5/8 ;">เลขที่ / NO.</p>
+            <p style="grid-area : 4/8/5/10 ;" class="param" data-invoice-no="{{invoiceNo}}"><%= data.invoiceNo %></p>
+
+            <p style="grid-area: 1/7/2/9; " class="text-center"><b>ใบเดือนชำระค่าเบี้ยประกัน</b></p>
+            <p style="grid-area: 2/7/3/9;" class="text-center"><b>PREMIUM INVOICE</b></p>
+            <p style="grid-area : 3/7/4/9 ;">(เป็นการกระทําแทนบริษัทประกันภัย)</p>
+            <p style="grid-area : 5/1/6/4 ;">เลขประจำตัวผู้เสียภาษีอากร 0135555018419</p>
+
+            <p style="grid-area : 6/1/7/2 ;">ชื่อผู้เอาประกัน </p>
+            <p style="grid-area : 6/2/7/5 ;" class="param" data-insuree-name="{{insureeName}}"><%= data.insureeName %></p>
+            <p style="grid-area : 6/5/7/6 ;">วันที่</p>
+
+            <p style="grid-area : 6/7/7/8 ;">กำหนดชำระ</p>
+            <p style="grid-area : 6/8/7/9 ;" class="param" data-due-date="{{dueDate}}"><%= data.dueDate %></p>
+
+            <p style="grid-area : 7/1/8/2 ;">INSURED NAME</p>
+            <p style="grid-area : 7/2/8/3 ;" class="param" data-insuree-code="{{insureeCode}}"><%= data.insureeCode %></p>
+            <p style="grid-area : 7/5/8/6 ;">DATE</p>
+            <p style="grid-area : 7/7/8/8 ;">DUE DATE</p>
+
+            <p style="grid-area : 8/1/9/2 ;">ที่อยู่ </p>
+            <p style="grid-area : 9/1/10/2 ;">ADDRESS </p>
+            <p style="grid-area : 8/2/11/5 ;" class="param" data-insuree-location="{{insureeLocation}}"><%= data.insureeLocation %></p>
+
+            <p style="grid-area : 8/5/9/6 ;">บริษัทประกันภัย</p>
+            <p style="grid-area : 9/5/10/6 ;">INSURER</p>
+            <p style="grid-area : 8/6/9/9 ;" class="param" data-insurer-name="{{insurerName}}"><%= data.insurerName %></p>
+            <p style="grid-area : 10/5/11/6 ;">ประเภท</p>
+            <p style="grid-area : 11/5/12/6 ;">CLASS</p>
+            <p style="grid-area : 10/6/12/8 ;" class="param" data-insure-name="{{insureName}}"><%= data.insureName %></p>
+
+            <p style="grid-area : 10/8/11/9 ;">ตัวแทนขาย</p>
+            <p style="grid-area : 11/8/12/9 ;">AGENT</p>
+
+
+        </div>
+<div style=" margin: 10px 10px;">
+        <div class="header grid" style=" grid-template-columns: 8fr 2fr;">
+            <div class="grid border" style="grid-template-rows: repeat(2, 30px); grid-template-columns: repeat(8, 1fr);">
+
+
+                <p style="grid-area : 1/1/2/2 ;" class="text-left">กรมธรรม์เลขที่</p>
+                <p style="grid-area : 1/2/2/3 ;" class="text-left param" data-policy-no="{{policyNo}}"><%= data.policyNo %></p>
+                <p style="grid-area : 1/5/2/6 ;" class="text-left">เริ่มวันที่</p>
+                <p style="grid-area : 2/5/3/6 ;" class="text-left">FROM</p>
+                <p style="grid-area : 1/6/2/7 ;" class="param text-left" data-act-date="{{actDate}}"><%= data.actDate %></p>
+                <p style="grid-area : 1/7/2/8 ;" class="text-left">ถึง</p>
+                <p style="grid-area : 2/7/3/8 ;" class="text-left">TO</p>
+                <p style="grid-area : 1/8/2/9 ;" class="param text-left" data-exp-date="{{expDate}}"><%= data.expDate %></p>
+            </div>
+        </div>
+
+        <div class="header grid " style="grid-template-columns: 8fr 2fr; text-align: center ">
+            <div class="grid border" style="grid-template-rows: repeat(7, 30px); grid-template-columns: repeat(8, 1fr);">
+
+
+                <p style="grid-area : 1/1/2/2 ;" class="text-left">สลักหลังเลขที่</p>
+                <p style="grid-area : 1/2/2/3 ;" class="text-left param" data-endorse-no="{{endorseNo}}"><%= data.endorseNo %></p>
+
+                <p style="grid-area : 3/1/4/2 ;" class="text-left">ทุนประกัน</p>
+                <p style="grid-area : 3/2/4/4 ;" class="text-right param" data-cover-amt="{{cover_amt}}"><%= data.cover_amt %></p>
+                <div  class="b-l b-b" style="grid-area : 1/5/2/7 ;">
+                    <p  class="center">เบี้ยประกันภัย / Premium</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 2/5/3/7 ;">
+                    <p  class="center">อากรแสตมป์ / Duty Stamp</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 3/5/4/7 ;">
+                    <p  class="center">ภาษี / Tax</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 4/5/5/7 ;" >
+                    <p class="center">รวม / Total</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 5/5/6/7 ;">
+                    <p  class="center">ส่วนลด / Discount</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 6/5/7/7 ;">
+                    <p  class="center">รวมเป็นเงิน / Net Total</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 7/5/8/7 ;">
+                    <p  class="center">ยอดเรียกเก็บครั้งนี้</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 1/7/2/9 ;">
+                    <p  class="text-right  param" data-netgrossprem="{{netgrossprem}}"><%= data.netgrossprem %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 2/7/3/9 ;">
+                    <p  class="text-right  param" data-duty="{{duty}}"><%= data.duty %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 3/7/4/9 ;">
+                    <p  class="text-right  param" data-tax="{{tax}}"><%= data.tax %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 4/7/5/9 ;">
+                    <p  class="text-right  param" data-totalprem="{{totalprem}}"><%= data.totalprem %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 5/7/6/9 ;">
+                    <p  class="text-right  param" data-specdiscamt="{{specdiscamt}}"><%= data.specdiscamt %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 6/7/7/9 ;">
+                    <p  class="text-right  param" data-totalamt="{{totalamt}}"><%= data.totalamt %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 7/7/8/9 ;">
+                    <p  class="text-right  param" data-seqamt="{{seqamt}}"><%= data.seqamt %></p>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div class="grid" style="grid-template-rows: repeat(4, 15px);">
+            <p style="grid-area : 1/1/2/3 ;">ผู้รับมอบอำนาจ </p>
+            <p style="grid-area : 2/1/3/5 ; ">AUTHORIZED SIGNATURE<p style =" border-block-end: 1px solid black;"></p></p>
+            
+            <p style="grid-area : 3/1/4/7 ;" class="footer">โปรดตรวจสอบความถูกต้องและชำระเงินโดยเช็คขีดคร่อม ในนาม "บริษัท อะมิตี้ อินชัวร์รันซ์ โบรคเกอร์ จำกัด"</p>
+            <p style="grid-area : 4/1/5/9 ;" class="footer">Please examine the above carefully and payment by crossed cheque in favour of "AMITY INSURANCE BROKER CO.,LTD."</p>
+        </div>
+        <hr>
+        <div class="header grid" style="grid-template-rows: 15px 15px 30px repeat(8, 15px);">
+            <img src="data:image/png;base64,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" alt="Company Logo" width="70" height="70">
+            <p style="grid-area : 1/2/2/6 ;">บริษัท อะมิดี้ อินชัวร์รันซ์ โบรคเกอร์ จำกัด</p>
+            <p style="grid-area : 2/2/3/6 ;">AMITY INSURANCE BROKER CO.,LTD.</p>
+            <p style="grid-area : 3/2/5/6 ;" class="address">
+                67/213 หมู่ 3 ต.คลองหนึ่ง อ.คลองหลวง จ.ปทุมธานี 12120<br>
+                67/213 Moo 3 T.Khlong Nueng, A.Khlong Luang Phathumthani 12120<br>
+                TEL: 02-259-8899 FAX: 02-902-4459
+            </p>
+            <p style="grid-area : 4/7/5/8 ;">เลขที่ / NO.</p>
+            <p style="grid-area : 4/8/5/10 ;"  class="param" data-invoice-no="{{invoiceNo}}"><%= data.invoiceNo %></p>
+            <p style="grid-area: 1/7/2/9; " class="text-center"><b>สำเนาใบแจ้งหนี้</b></p>
+            <p style="grid-area: 2/7/3/9;" class="text-center"><b>DEBIT NOTE COPY</b></p>
+            <p style="grid-area : 3/7/4/9 ;">(เป็นการกระทําแทนบริษัทประกันภัย)</p>
+            <p style="grid-area : 5/1/6/4 ;">เลขประจำตัวผู้เสียภาษีอากร 0135555018419</p>
+
+            <p style="grid-area : 6/1/7/2 ;">ชื่อผู้เอาประกัน </p>
+            <p style="grid-area : 6/2/7/5 ;"  class="param" data-insuree-name="{{insureeName}}"><%= data.insureeName %></p>
+            <p style="grid-area : 6/5/7/6 ;">วันที่</p>
+
+            <p style="grid-area : 6/7/7/8 ;">กำหนดชำระ</p>
+            <p style="grid-area : 6/8/7/9 ;"  class="param" data-due-date="{{dueDate}}"><%= data.dueDate %></p>
+
+            <p style="grid-area : 7/1/8/2 ;">INSURED NAME</p>
+            <p style="grid-area : 7/2/8/3 ;"  class="param" data-insuree-code="{{insureeCode}}"><%= data.insureeCode %></p>
+            <p style="grid-area : 7/5/8/6 ;">DATE</p>
+            <p style="grid-area : 7/7/8/8 ;">DUE DATE</p>
+
+            <p style="grid-area : 8/1/9/2 ;">ที่อยู่ </p>
+            <p style="grid-area : 9/1/10/2 ;">ADDRESS </p>
+            <p style="grid-area : 8/2/11/5 ;" class="param" data-insuree-location="{{insureeLocation}}"><%= data.insureeLocation %></p>
+
+            <p style="grid-area : 8/5/9/6 ;">บริษัทประกันภัย</p>
+            <p style="grid-area : 9/5/10/6 ;">INSURER</p>
+            <p style="grid-area : 8/6/9/9 ;" class="param" data-insurer-name="{{insurerName}}"><%= data.insurerName %></p>
+            <p style="grid-area : 10/5/11/6 ;">ประเภท</p>
+            <p style="grid-area : 11/5/12/6 ;">CLASS</p>
+            <p style="grid-area : 10/6/12/8 ;" class="param" data-insure-name="{{insureName}}"><%= data.insureName %></p>
+
+            <p style="grid-area : 10/8/11/9 ;">ตัวแทนขาย</p>
+            <p style="grid-area : 11/8/12/9 ;">AGENT</p>
+
+
+        </div>
+        <div style=" margin: 10px 10px;">
+        <div class="header grid" style=" grid-template-columns: 8fr 2fr;">
+            <div class="grid border" style="grid-template-rows: repeat(2, 30px); grid-template-columns: repeat(8, 1fr);">
+
+
+                <p style="grid-area : 1/1/2/2 ;">กรมธรรม์เลขที่</p>
+                <p style="grid-area : 1/2/2/3 ;" class="param" data-policy-no="{{policyNo}}"><%= data.policyNo %></p>
+                <p style="grid-area : 1/5/2/6 ;">เริ่มวันที่</p>
+                <p style="grid-area : 2/5/3/6 ;">FROM</p>
+                <p style="grid-area : 1/6/2/7 ;" class="param" data-act-date="{{actDate}}"><%= data.actDate %></p>
+                <p style="grid-area : 1/7/2/8 ;">ถึง</p>
+                <p style="grid-area : 2/7/3/8 ;">TO</p>
+                <p style="grid-area : 1/8/2/9 ;" class="param" data-exp-date="{{expDate}}"><%= data.expDate %></p>
+            </div>
+        </div>
+
+        <div class="header grid " style="grid-template-columns: 8fr 2fr; text-align: center ">
+            <div class="grid border" style="grid-template-rows: repeat(7, 30px); grid-template-columns: repeat(8, 1fr);">
+
+
+                <p style="grid-area : 1/1/2/2 ;" class="text-left">สลักหลังเลขที่</p>
+                <p style="grid-area : 1/2/2/3 ;" class="text-left param" data-endorse-no="{{endorseNo}}"><%= data.endorseNo %></p>
+
+                <p style="grid-area : 3/1/4/2 ;" class="text-left">ทุนประกัน</p>
+                <p style="grid-area : 3/2/4/4 ;" class="text-right param" data-cover-amt="{{cover_amt}}"><%= data.cover_amt %></p>
+                <div  class="b-l b-b" style="grid-area : 1/5/2/7 ;">
+                    <p  class="center">เบี้ยประกันภัย / Premium</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 2/5/3/7 ;">
+                    <p  class="center">อากรแสตมป์ / Duty Stamp</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 3/5/4/7 ;">
+                    <p  class="center">ภาษี / Tax</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 4/5/5/7 ;" >
+                    <p class="center">รวม / Total</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 5/5/6/7 ;">
+                    <p  class="center">ส่วนลด / Discount</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 6/5/7/7 ;">
+                    <p  class="center">รวมเป็นเงิน / Net Total</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 7/5/8/7 ;">
+                    <p  class="center">ยอดเรียกเก็บครั้งนี้</p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 1/7/2/9 ;">
+                    <p  class="text-right  param" data-netgrossprem="{{netgrossprem}}"><%= data.netgrossprem %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 2/7/3/9 ;">
+                    <p  class="text-right  param" data-duty="{{duty}}"><%= data.duty %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 3/7/4/9 ;">
+                    <p  class="text-right  param" data-tax="{{tax}}"><%= data.tax %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 4/7/5/9 ;">
+                    <p  class="text-right  param" data-totalprem="{{totalprem}}"><%= data.totalprem %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 5/7/6/9 ;">
+                    <p  class="text-right  param" data-specdiscamt="{{specdiscamt}}"><%= data.specdiscamt %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 6/7/7/9 ;">
+                    <p  class="text-right  param" data-totalamt="{{totalamt}}"><%= data.totalamt %></p>
+                </div>
+                <div  class="b-l b-b" style="grid-area : 7/7/8/9 ;">
+                    <p  class="text-right  param" data-seqamt="{{seqamt}}"><%= data.seqamt %></p>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div class="grid" style="grid-template-rows: repeat(4, 15px);">
+            <p style="grid-area : 1/1/2/3 ;">ผู้รับมอบอำนาจ </p>
+            <p style="grid-area : 2/1/3/5 ; ">AUTHORIZED SIGNATURE<p style =" border-block-end: 1px solid black;"></p></p>
+            
+            <p style="grid-area : 1/5/2/6 ;">ผู้รับกรมธรรม์</p>
+            <p style="grid-area : 2/7/3/9 ;"><div style =" border-block-end: 1px solid black;"></div></p>
+            <p style="grid-area : 3/1/4/7 ;" class="footer">โปรดตรวจสอบความถูกต้องและชำระเงินโดยเช็คขีดคร่อม ในนาม "บริษัท อะมิตี้ อินชัวร์รันซ์ โบรคเกอร์ จำกัด"</p>
+            <p style="grid-area : 4/1/5/9 ;" class="footer">Please examine the above carefully and payment by crossed cheque in favour of "AMITY INSURANCE BROKER CO.,LTD."</p>
+        </div>
+        <hr>
+
+    </div>
+</body>
+</html>

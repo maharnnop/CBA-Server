@@ -1,0 +1,183 @@
+{
+	"info": {
+		"_postman_id": "c6b60fd9-566b-41d7-ad95-8fb41e848e1f",
+		"name": "bestpolicy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "province-getall",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/v1/static/provinces/all",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"v1",
+						"static",
+						"provinces",
+						"all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "province-seachby (/search/TH or EN/:value)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/v1/static/provinces/search/TH/Sa",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"v1",
+						"static",
+						"provinces",
+						"search",
+						"TH",
+						"Sa"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "person-newentity",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"personType\": \"P\",\r\n      \"titleID\": 3,\r\n      \"t_ogName\": null,\r\n      \"e_ogName\": null,\r\n      \"t_firstName\": \"มหรรณพ1\",\r\n      \"t_lastName\": \"ศรีบัวบาน2\",\r\n      \"e_firstName\": null,\r\n      \"e_lastName\": null,\r\n      \"email\":\"maharnnop.s@gamil.com\",\r\n      // IDCARD type บัตรปชช หนังสือเดินทาง\r\n      \"idCardType\": \"idcard\",\r\n      \"idCardNo\": 1119900726666,\r\n      \"idCardActDate\": \"2020-07-01\",\r\n      \"idCardExpDate\": \"2023-07-08\",\r\n      \"dateOfBirth\": \"1997-10-06\",\r\n      \"gender\": \"male\",\r\n      // ประเภทการประกอบธุรกิจ\r\n      \"ogType\": null,\r\n      // เลขทะเบียนการค้า\r\n      \"taxNo\": null,\r\n      \"taxActDate\": null,\r\n      \"taxExpDate\": null,\r\n      // จดทะเบียน VAT ไหม\r\n      \"vatRegis\":null,\r\n      // เลขที่ ภพ 20\r\n      \"pk20\":null,\r\n      //ชื่อสาขา กรณี เป็น สาขาย่อย \r\n      \"branch\":null,\r\n      \"note\":null\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/v1/persons/entitynew",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"v1",
+						"persons",
+						"entitynew"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "person-getentitybyid",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"personType\": \"P\",\r\n      \"titleID\": 3,\r\n      \"t_ogName\": null,\r\n      \"e_ogName\": null,\r\n      \"t_firstName\": \"มหรรณพ1\",\r\n      \"t_lastName\": \"ศรีบัวบาน2\",\r\n      \"e_firstName\": null,\r\n      \"e_lastName\": null,\r\n      \"email\":\"maharnnop.s@gamil.com\",\r\n      // IDCARD type บัตรปชช หนังสือเดินทาง\r\n      \"idCardType\": \"idcard\",\r\n      \"idCardNo\": 1119900726666,\r\n      \"idCardActDate\": \"2020-07-01\",\r\n      \"idCardExpDate\": \"2023-07-08\",\r\n      \"dateOfBirth\": \"1997-10-06\",\r\n      \"gender\": \"male\",\r\n      // ประเภทการประกอบธุรกิจ\r\n      \"ogType\": null,\r\n      // เลขทะเบียนการค้า\r\n      \"taxNo\": null,\r\n      \"taxActDate\": null,\r\n      \"taxExpDate\": null,\r\n      // จดทะเบียน VAT ไหม\r\n      \"vatRegis\":null,\r\n      // เลขที่ ภพ 20\r\n      \"pk20\":null,\r\n      //ชื่อสาขา กรณี เป็น สาขาย่อย \r\n      \"branch\":null,\r\n      \"note\":null\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/v1/persons/entityget/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"v1",
+						"persons",
+						"entityget",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "person-newinsuree",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"insureeCode\": \"A17289\",\r\n    \"entityID\":  2,\r\n    // เดี่ยว กลุ่ม ภายใต้กลุ่ม\r\n    \"insureeType\":  \"A\",\r\n    // ระดับความเสี่ยง สูง กลาง ต่ำ\r\n    \"blackList\":  null,\r\n    \"blacklistDesp\": null,\r\n    \"note\":  null\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/v1/persons/insureenew",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"v1",
+						"persons",
+						"insureenew"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "person-getinsuree (insureeget/:id)",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"insureeCode\": \"A17289\",\r\n    \"entityID\":  2,\r\n    // เดี่ยว กลุ่ม ภายใต้กลุ่ม\r\n    \"insureeType\":  \"A\",\r\n    // ระดับความเสี่ยง สูง กลาง ต่ำ\r\n    \"blackList\":  null,\r\n    \"blacklistDesp\": null,\r\n    \"note\":  null\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/v1/persons/insureeget/A17289",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"v1",
+						"persons",
+						"insureeget",
+						"A17289"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

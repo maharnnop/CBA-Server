@@ -1,0 +1,321 @@
+{
+	"value": [
+	{
+		"newvoluntarycode" : "110",
+		"t_description" : "รถยนต์นั่ง",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "120",
+		"t_description" : "รถยนต์นั่ง",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "210",
+		"t_description" : "รถยนต์โดยสาร",
+		"capacityflag" : "N",
+		"t_capacityunit" : "ที่นั่ง"
+	},
+	{
+		"newvoluntarycode" : "220",
+		"t_description" : "รถยนต์โดยสาร",
+		"capacityflag" : "N",
+		"t_capacityunit" : "ที่นั่ง"
+	},
+	{
+		"newvoluntarycode" : "230",
+		"t_description" : "รถยนต์โดยสาร",
+		"capacityflag" : "N",
+		"t_capacityunit" : "ที่นั่ง"
+	},
+	{
+		"newvoluntarycode" : "320",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "340",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "420",
+		"t_description" : "รถยนต์ลากจูง",
+		"capacityflag" : "G",
+		"t_capacityunit" : "กก."
+	},
+	{
+		"newvoluntarycode" : "520",
+		"t_description" : "รถพ่วง",
+		"capacityflag" : "G",
+		"t_capacityunit" : "กก."
+	},
+	{
+		"newvoluntarycode" : "540",
+		"t_description" : "รถพ่วง",
+		"capacityflag" : "G",
+		"t_capacityunit" : "กก."
+	},
+	{
+		"newvoluntarycode" : "610",
+		"t_description" : "รถจักรยานยนต์",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "620",
+		"t_description" : "รถจักรยานยนต์",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "730",
+		"t_description" : "รถยนต์นั่งรับจ้างสาธารณะ",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "801",
+		"t_description" : "รถยนต์ป้ายแดง",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "802",
+		"t_description" : "รถพยาบาล",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "803",
+		"t_description" : "รถดับเพลิง",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "804",
+		"t_description" : "รถใช้ในการเกษตร",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "805",
+		"t_description" : "รถใช้ในการก่อสร้าง",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "806",
+		"t_description" : "รถอื่นๆ",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "630",
+		"t_description" : "รถจักรยานยนต์",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "310",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "110E",
+		"t_description" : "รถยนต์นั่ง",
+		"capacityflag" : "C",
+		"t_capacityunit" : "กิโลวัตต์"
+	},
+	{
+		"newvoluntarycode" : "120E",
+		"t_description" : "รถยนต์นั่ง",
+		"capacityflag" : "C",
+		"t_capacityunit" : "กิโลวัตต์"
+	},
+	{
+		"newvoluntarycode" : "210E",
+		"t_description" : "รถยนต์โดยสาร",
+		"capacityflag" : "N",
+		"t_capacityunit" : "ที่นั่ง"
+	},
+	{
+		"newvoluntarycode" : "220E",
+		"t_description" : "รถยนต์โดยสาร",
+		"capacityflag" : "N",
+		"t_capacityunit" : "ที่นั่ง"
+	},
+	{
+		"newvoluntarycode" : "230E",
+		"t_description" : "รถยนต์โดยสาร",
+		"capacityflag" : "N",
+		"t_capacityunit" : "ที่นั่ง"
+	},
+	{
+		"newvoluntarycode" : "310E",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "320E",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "327E",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "กก."
+	},
+	{
+		"newvoluntarycode" : "340E",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "347E",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "420E",
+		"t_description" : "รถยนต์ลากจูง",
+		"capacityflag" : "G",
+		"t_capacityunit" : "กก."
+	},
+	{
+		"newvoluntarycode" : "610E",
+		"t_description" : "รถจักรยานยนต์",
+		"capacityflag" : "C",
+		"t_capacityunit" : "กิโลวัตต์"
+	},
+	{
+		"newvoluntarycode" : "620E",
+		"t_description" : "รถจักรยานยนต์",
+		"capacityflag" : "C",
+		"t_capacityunit" : "กิโลวัตต์"
+	},
+	{
+		"newvoluntarycode" : "630E",
+		"t_description" : "รถจักรยานยนต์",
+		"capacityflag" : "C",
+		"t_capacityunit" : "กิโลวัตต์"
+	},
+	{
+		"newvoluntarycode" : "730E",
+		"t_description" : "รถยนต์นั่งรับจ้างสาธารณะ",
+		"capacityflag" : "C",
+		"t_capacityunit" : "กิโลวัตต์"
+	},
+	{
+		"newvoluntarycode" : "801E",
+		"t_description" : "รถยนต์ป้ายแดง",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "802E",
+		"t_description" : "รถพยาบาล",
+		"capacityflag" : "C",
+		"t_capacityunit" : "กิโลวัตต์"
+	},
+	{
+		"newvoluntarycode" : "803E",
+		"t_description" : "รถดับเพลิง",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "804E",
+		"t_description" : "รถใช้ในการเกษตร",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "805E",
+		"t_description" : "รถใช้ในการก่อสร้าง",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "806E",
+		"t_description" : "รถอื่นๆ",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "327",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "347",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "110D",
+		"t_description" : "รถยนต์นั่ง",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "210D",
+		"t_description" : "รถยนต์โดยสาร",
+		"capacityflag" : "N",
+		"t_capacityunit" : "ที่นั่ง"
+	},
+	{
+		"newvoluntarycode" : "320D",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "ALLD",
+		"t_description" : "รถยนต์นั่ง,รถยนต์โดยสาร,รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "120D",
+		"t_description" : "รถยนต์นั่ง",
+		"capacityflag" : "C",
+		"t_capacityunit" : "ซีซี"
+	},
+	{
+		"newvoluntarycode" : "220D",
+		"t_description" : "รถยนต์โดยสาร",
+		"capacityflag" : "N",
+		"t_capacityunit" : "ที่นั่ง"
+	},
+	{
+		"newvoluntarycode" : "340D",
+		"t_description" : "รถยนต์บรรทุก",
+		"capacityflag" : "G",
+		"t_capacityunit" : "ตัน"
+	},
+	{
+		"newvoluntarycode" : "E11",
+		"t_description" : "รถยนต์นั่ง",
+		"capacityflag" : "C",
+		"t_capacityunit" : "แรงม้า"
+	},
+	{
+		"newvoluntarycode" : "E12",
+		"t_description" : "รถยนต์นั่ง",
+		"capacityflag" : "C",
+		"t_capacityunit" : "แรงม้า"
+	}
+]}

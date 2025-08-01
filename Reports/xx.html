@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>policy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .report-container {
+            width: 540px;
+            margin: 36px 19px 20px;
+            position: relative;
+        }
+
+        .header-section {
+            /* Styles for the company header */
+            text-align: center;
+        }
+
+        .header-text {
+            /* Styles for the company name */
+            font-size: 18px;
+        }
+
+        .address-text {
+            /* Styles for address and contact info */
+            font-size: 8px;
+        }
+
+        .policy-details {
+            /* Styles for policy details section */
+            margin-top: 20px;
+        }
+
+        .policy-title {
+            /* Styles for the report title */
+            font-size: 16px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .label {
+            /* Styles for labels */
+            font-size: 12px;
+        }
+
+        .value {
+            /* Styles for values */
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .pet-details {
+            /* Styles for pet details section */
+            margin-top: 10px;
+        }
+
+        .coverage-section {
+            /* Styles for coverage details */
+            margin-top: 10px;
+        }
+
+        .coverage-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .coverage-table th, .coverage-table td {
+                border: 1px solid black;
+                padding: 5px;
+                text-align: center;
+            }
+
+            .coverage-table th {
+                font-weight: bold;
+            }
+
+        .signature-section {
+            /* Styles for signature section */
+            margin-top: 20px;
+            font-size: 12px;
+        }
+
+        .signature-line {
+            /* Styles for signature lines */
+            width: 150px;
+            border-bottom: 1px solid black;
+            margin-bottom: 5px;
+        }
+
+        .test-overlay {
+            /* Styles for the "TEST" overlay */
+            position: absolute;
+            top: 100px;
+            left: 0;
+            width: 100%;
+            height: 700px;
+            text-align: center;
+            font-size: 80px;
+            color: #CCCCCC;
+            transform: rotate(-90deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <div class="header-section">
+            <div class="address-text">
+                ��ҹѡ�ҹ�˭��������Ţ��� 1115 ��������� 3 �ǧ��ͧ����� ࢵ�ҹ���� ��ا෾� 10120<br>
+                ���Ѿ��. 1736, 0 2239 2200 �����. 0 2239 2049<br>
+                �Ţ��Шӵ�Ǽ���������� 0107538000533
+            </div>
+            <img src="logo.png" alt="Company Logo" width="60" height="60">
+            <div class="header-text">����ѷ �Ծ»�Сѹ��� �ӡѴ (��Ҫ�)</div>
+            <div class="header-text">DHIPAYA INSURANCE PUBLIC COMPANY LIMITED</div>
+        </div>
+
+        <hr>
+
+        <div class="policy-details">
+            <h1 class="policy-title">
+                ���ҧ���������Сѹ��� (��¼�ҹ��ͧ�ҧ����硷�͹ԡ�� (Online))<br>
+                ���������Сѹ����ѵ������§ �Ծ� ���ѡ�ѵ������§ (TIP Pet Lover)
+            </h1>
+
+            <div class="label">���ʺ���ѷ : Company Code</div>
+            <div class="value">CO_CODE_VALUE</div>  <div class="label" style="float: right;">���������Сѹ����Ţ��� : Policy No.</div>
+            <div class="value" style="float: right;">POLICY_NO_VALUE</div> <br><br>
+
+            <div class="label">1. �����һ�Сѹ��� (��Ңͧ�ѵ������§) The Insured (Pet's Owner) :</div>
+            <div class="label" style="margin-left: 20px;">�Ţ���ѵû�Шӵ�ǻ�ЪҪ� I.D. No. :</div>
+            <div class="value" style="margin-left: 20px;">INSURED_ID_VALUE</div> <br>
+            <div class="label" style="margin-left: 20px;">�������Ѩ�غѹ Current address :</div>
+            <div class="value" style="margin-left: 20px;">INSURED_ADDRESS_VALUE</div> <br>
+
+            <div class="label">
+                <input type="checkbox" style="margin-right: 5px;"> ��Сѹ���������� New Policy
+                <input type="checkbox" style="margin-left: 20px; margin-right: 5px;"> ������� Renew Policy
+            </div>
+            <br>
+        </div>
+
+        <hr>
+
+        <div class="pet-details">
+            <div class="label">2. ��������´����ǡѺ�ѵ������§�����һ�Сѹ��� Detail of insured pet :</div><br>
+
+            <div class="label" style="margin-left: 20px;">������ Kind :</div>
+            <div class="value" style="margin-left: 150px;">PET_KIND_VALUE</div> <div class="label" style="margin-left: 250px;">���ͧ͢�ѵ������§ Name of pet :</div>
+            <div class="value" style="margin-left: 400px;">PET_NAME_VALUE</div> <br>
+
+            <div class="label" style="margin-left: 20px;">�� Gender :</div>
+            <div class="value" style="margin-left: 150px;">PET_GENDER_VALUE</div> <div class="label" style="margin-left: 250px;">��¾ѹ��� Breed :</div>
+            <div class="value" style="margin-left: 400px;">PET_BREED_VALUE</div> <br>
+
+            <div class="label" style="margin-left: 20px;">�����Ţ���êԾ Microship No :</div>
+            <div class="value" style="margin-left: 150px;">PET_MICROCHIP_VALUE</div> <div class="label" style="margin-left: 250px;">���� Age :</div>
+            <div class="value" style="margin-left: 400px;">PET_AGE_VALUE</div> <br>
+
+            <div class="label" style="margin-left: 20px;">�ѵ�ػ��ʧ��������§ Purpose :</div>
+            <div class="value" style="margin-left: 150px;">PET_PURPOSE_VALUE</div> <div class="label" style="margin-left: 250px;">��Ѻ�ͧ��¾ѹ��� Pedigee :</div>
+            <div class="value" style="margin-left: 400px;">PET_PEDIGREE_VALUE</div> <br>
+        </div>
+
+        <hr>
+
+        <div class="coverage-section">
+            <div class="label">3. �ҳ�ࢵ����������ͧ Territorial limit :</div>
+            <div class="value" style="margin-top: -15px; margin-left: 132px;">������ҳ�ࢵ������� Within Thailand</div>
+            <br>
+
+            <div class="label">4. �������һ�Сѹ��� : ��������ѹ��� Period of Insurance : From</div>
+            <div class="value" style="margin-top: -15px; margin-left: 132px;">PERIOD_INSURED_FROM_VALUE</div> <div class="label" style="margin-left: 210px;">���� at</div>
+            <div class="value" style="margin-top: -15px; margin-left: 230px;">TIME_INSURED_FROM_VALUE</div> <div class="label" style="margin-left: 270px;">�. hours</div>
+            <br>
+
+            <div class="label" style="margin-left: 295px;">����ش�ѹ��� To</div>
+            <div class="value" style="margin-top: -15px; margin-left: 324px;">PERIOD_INSURED_TO_VALUE</div> <div class="label" style="margin-left: 425px;">���� at</div>
+            <div class="value" style="margin-top: -15px; margin-left: 445px;">TIME_INSURED_TO_VALUE</div> <div class="label" style="margin-left: 495px;">�. hours</div>
+            <br>
+
+            <div class="label">5. ����������ͧ��Шӹǹ�Թ��һ�Сѹ��� Coverage and Amount Sum Insured :</div>
+            <br>
+
+            <table class="coverage-table">
+                <thead>
+                    <tr>
+                        <th>��͵�ŧ����������ͧ/�͡���Ṻ����<br>Insuring Agreement / Endorsement</th>
+                        <th>�ӹǹ�Թ��һ�Сѹ���<br>Sum Insured (Bath)</th>
+                        <th>�����Ѻ�Դ��ǹ�á<br>Deductible (Bath)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>COVERAGE_1_1_VALUE</td>
+                        <td>COVERAGE_1_1_COUNT_VALUE</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>COVERAGE_1_2_VALUE</td>
+                        <td>COVERAGE_1_2_COUNT_VALUE</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>COVERAGE_2_1_VALUE</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>COVERAGE_2_2_VALUE</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>COVERAGE_3_VALUE</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>COVERAGE_4_VALUE</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>COVERAGE_5_VALUE</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>COVERAGE_6_VALUE</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>COVERAGE_7_VALUE</td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <hr>
+
+        <div class="payment-details">
+            <div class="label">6. ���»�Сѹ����ط�� : Net Premium</div>
+            <div class="value" style="margin-top: -15px; margin-left: 150px;">NET_PREMIUM_VALUE</div> <br>
+            <div class="label">7. ��Сѹ����µç Direct</div>
+            <input type="checkbox" style="margin-right: 5px;">
+            <div class="label" style="margin-left: 100px;">���᷹��Сѹ�Թ����� Agent</div>
+            <input type="checkbox" style="margin-right: 5px;">
+            <div class="label" style="margin-left: 180px;">���˹�һ�Сѹ�Թ�������¹�� Broker</div>
+            <input type="checkbox" style="margin-right: 5px;">
+            <div class="label" style="margin-left: 395px;">�͹حҵ��Ţ��� License No.</div>
+            <div class="value" style="margin-top: -15px; margin-left: 450px;">AGENT_LICENSE_VALUE</div> <br>
+            <div class="value" style="margin-top: -15px; margin-left: 286px;">AGENT_NAME_VALUE</div>
+        </div>
+
+        <hr>
+
+        <div class="signature-section">
+            <div class="label">8. �ѹ����ѭ�һ�Сѹ��� Agreement made on</div>
+            <div class="signature-line" style="margin-left: 88px;">AGREEMENT_MADE_ON_VALUE</div> <br>
+
+            <div class="label" style="margin-left: 315px;">�ѹ��ҡ��������Сѹ��� Policy issued on</div>
+            <div class="signature-line" style="margin-left: 394px;">POLICY_ISSUED_ON_VALUE</div> <br>
+
+            <img src="signature1.jpg" alt="Signature 1" width="100" height="50" style="margin-left: 20px;">
+            <img src="signature2.jpg" alt="Signature 2" width="100" height="50" style="margin-left: 230px;">
+            <img src="authorized_signature.jpg" alt="Authorized Signature" width="100" height="50" style="margin-left: 400px;">
+            <br>
+
+            <div style="text-align: center;">
+                <div style="display: inline-block; width: 140px; text-align: center;">
+                    ...................................................................<br>
+                    ������� Director
+                </div>
+                <div style="display: inline-block; width: 140px; text-align: center;">
+                    ...................................................................<br>
+                    ������� Director
+                </div>
+                <div style="display: inline-block; width: 140px; text-align: center;">
+                    ...................................................................<br>
+                    ����Ѻ�ͺ��ҹҨ Authorized Signature
+                    ................./................./.................
+                </div>
+            </div>
+        </div>
+        <div class="test-overlay">���ͺ ���ͺ ���ͺ ���ͺ</div>
+    </div>
+</body>
+</html>
