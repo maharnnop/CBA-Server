@@ -41,7 +41,7 @@ const showAll_tusource = async (req,res)=>{
     `select * from static_data."b_tusource" 
     where 
     ${cond}
-    order by activeflag desc, description `,
+    order by "sourceCode", description `,
         {
           type: QueryTypes.SELECT
         }

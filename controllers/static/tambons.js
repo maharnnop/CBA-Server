@@ -27,15 +27,20 @@ const showAll = (req,res) =>{
     })
 }
 
-const showAllinAmphur = (req, res) => {
-  Tambon.findAll ({
+const showAllinAmphur = async (req, res) => {
+try{
+    const tambons = await Tambon.findAll ({
     attributes: ['tambonid','t_tambonname','e_tambonname','amphurid','postcodeall'],
     where: {
         amphurid: req.params.index
     },order:[['t_tambonname',  'ASC']],
-  }).then((tambon) => {
-    res.json(tambon);
-  });
+  })
+ res.json(tambons);
+  } catch (error) {
+
+    console.error(error.message)
+     res.status(500).json({ message: error.message });
+  }
 };
 
 const showAllinAmphurname = (req,res)=>{

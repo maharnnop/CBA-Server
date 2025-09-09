@@ -86,7 +86,7 @@ const findPolicy = async (req, res) => {
     cond = `${cond} and pol."applicationNo" = '${req.body.applicationNo}'`
   }
   const records = await sequelize.query(
-    `select pol.xlock, pol.id as polid ,pol.*, ent.*, lo.*, inst.*, mt.*,
+    `select pol."createdAt" as "polcreatedAt" , polpol.xlock, pol.id as polid ,pol.*, ent.*, lo.*, inst.*, mt.*,
     edt.edtypecode as edtype, (ine.version + 1 )as "InsureeVersion",
     (case when (select count(*) from static_data.b_juepms where polid = pol.id) > 0 then 'Y' else 'N' end) as edprem,
     (case when pol."fleetflag" = 'Y' then 'fleet' else 'minor' end) as "insuranceType" , 
@@ -2044,48 +2044,61 @@ where bj.request_no = :request_no ;`,
     policy.endorseseries = parseInt(policy.endorseseries) + 1
 console.log(JSON.stringify(policy));
 
+      let entity
+      let checkEntity
+      let entityType = 'new' // new ลูกค้าใหม่ old ลูกค้าเดิม  update ลูกค้าเดิมแต่ชื่อเปลี่ยน
     //#region update entity insuree
-    if(update_entity_insuree != null){
-      await sequelize.query(
-              `update static_data."Entities" set
-             "personType" = :personType,
-             "titleID" = :titleID,
-             "t_firstName" = :t_firstName,
-             "t_lastName" = :t_lastName,
-             "idCardType" = :idCardType,
-             "idCardNo" = :idCardNo,
-              email = :email,
-            -- version = :version,
-              "t_ogName" = :t_ogName,
-              "taxNo" = :taxNo,
-               branch = :branch,
-              "t_branchName" = :t_branchName
-              where id = :entityID
-            -- ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING  RETURNING "id" `,
-              {
-                replacements: {
-                  personType: policy.personType,
-                  titleID: policy.titleID,
-                  t_firstName: policy.t_firstName,
-                  t_lastName: policy.t_lastName,
-                  idCardType: policy.idCardType,
-                  idCardNo: policy.idCardNo,
-                  // version: policy.version,
-                  email: policy.email,
-                  t_ogName: policy.t_ogName,
-                  taxNo: policy.taxNo,
-                  branch: policy.branch,
-                  t_branchName: policy.t_branchName,
-                  entityID: policy.entityID,
-                },
-                transaction: t,
-                type: QueryTypes.UPDATE
-              }
-            )
-    }
-    //#endregion
- console.log(">>> done update entity insuree ");
-    //#region update location insuree
+    if(update_entity_insuree != null || update_location_insuree != null){
+      console.log(">>> แก้ไข entity insuree ");
+      if(update_entity_insuree != null){
+
+      // await sequelize.query(
+      //         `update static_data."Entities" set
+      //        "personType" = :personType,
+      //        "titleID" = :titleID,
+      //        "t_firstName" = :t_firstName,
+      //        "t_lastName" = :t_lastName,
+      //        "idCardType" = :idCardType,
+      //        "idCardNo" = :idCardNo,
+      //         email = :email,
+      //       -- version = :version,
+      //         "t_ogName" = :t_ogName,
+      //         "taxNo" = :taxNo,
+      //          branch = :branch,
+      //         "t_branchName" = :t_branchName
+      //         where id = :entityID
+      //       -- ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING  RETURNING "id" `,
+      //         {
+      //           replacements: {
+      //             personType: policy.personType,
+      //             titleID: policy.titleID,
+      //             t_firstName: policy.t_firstName,
+      //             t_lastName: policy.t_lastName,
+      //             idCardType: policy.idCardType,
+      //             idCardNo: policy.idCardNo,
+      //             // version: policy.version,
+      //             email: policy.email,
+      //             t_ogName: policy.t_ogName,
+      //             taxNo: policy.taxNo,
+      //             branch: policy.branch,
+      //             t_branchName: policy.t_branchName,
+      //             entityID: policy.entityID,
+      //           },
+      //           transaction: t,
+      //           type: QueryTypes.UPDATE
+      //         }
+      //       )
+           // check duplicate entity if idcard type = 'บัตรประชาชน'
+     
+      policy.version = 1
+      const upsert = upsertEntityInsuree(policy ,t)
+             console.log(">>> done update entity insuree ");
+      }
+      entity = upsert.entity
+     checkEntity = upsert.checkEntity
+     entityType = upsert.entityType
+     
+        //#region update location insuree
     if(update_location_insuree != null){
       await sequelize.query(
       
@@ -2121,9 +2134,14 @@ console.log(JSON.stringify(policy));
                 type: QueryTypes.UPDATE
               }
             )
+            console.log(">>> done update location insuree ");
     }
     //#endregion
-    console.log(">>> done update location insuree ");
+    }
+
+    //#endregion
+
+  
 
     //#region update Motor  ยังใช้ไม่ได้
      if (policy.class === 'MO') {

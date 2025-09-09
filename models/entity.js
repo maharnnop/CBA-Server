@@ -45,6 +45,8 @@ module.exports = (sequelize, DataTypes) => {
     branch : DataTypes.STRING,
     lastversion : DataTypes.STRING,
     version : DataTypes.INTEGER,
+    
+    t_branchName : DataTypes.STRING,
   }, {
     sequelize,
     modelName: 'Entity',

@@ -40,6 +40,7 @@ module.exports = (sequelize, DataTypes) => {
     premCreditUnit: DataTypes.STRING,
     lastversion : DataTypes.STRING,
     version : DataTypes.INTEGER,
+    amityflag : DataTypes.STRING,
     
   }, {
     sequelize,

@@ -24,72 +24,6 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, pr
     },
   },
 });
-//dont use currently
-const newEntity = (req, res) => {
-  Entity.create(req.body).then((entity) => {
-    res.json(entity);
-  });
-};
-const getEntityByid = (req, res) => {
-  Entity.findOne({
-    where: {
-      id: req.params.id
-    }
-  }).then((entity) => {
-    res.json(entity);
-  });
-};
-
-const getInsureeByid = (req, res) => {
-  Insuree.findOne({
-    where: {
-      insureeCode: req.params.id
-    }
-  }).then((insuree) => {
-    res.json(insuree);
-  });
-};
-
-const newInsuree = (req, res) => {
-  Entity.create(req.body.entity).then((entity) => {
-    req.body.insuree.entityID = entity.id
-    req.body.location.entityID = entity.id
-    Insuree.create(req.body.insuree).then((insuree) => {
-      Location.create(req.body.location).then((location) => {
-        res.json({ ...insuree, ...entity, ...location });
-      });
-
-      // res.json(location);
-    });
-    // res.json({});
-  });
-};
-
-const getInsurerByid = (req, res) => {
-  Insurer.findOne({
-    where: {
-      insurerCode: req.params.id
-    }
-  }).then((insuree) => {
-    res.json(insuree);
-  });
-};
-
-const getAgentGroupByid = (req, res) => {
-  AgentGruop.findOne({
-    where: {
-      agentGroup: req.params.id
-    }
-  }).then((agentGroup) => {
-    res.json(agentGroup);
-  });
-};
-
-const newAgentGroup = (req, res) => {
-  AgentGruop.create(req.body).then((agentGroup) => {
-    res.json(agentGroup);
-  });
-};
 
 //need modify
 const getUserByid = (req, res) => {
@@ -127,13 +61,18 @@ const newInsurer = async (req, res) => {
   const t = await sequelize.transaction();
   try {
 
+console.log("+++++ [method] : newInsurer ++++++");
+    req.body.entity.id = null;
+    req.body.contactPerson.id = null;
+    req.body.insurer.id =null;    
+    req.body.location.id =null;
 
     const entity = await Entity.create(req.body.entity, { transaction: t })
     req.body.insurer.entityID = entity.id
     req.body.location.entityID = entity.id
-   
     const location = await Location.create(req.body.location, { transaction: t })
   
+   console.log(`>>> gen entity id : ${entity.id} ,location id : ${location.id}  finished`);
     // contact person 
  
     const contact = await Entity.create(req.body.contactPerson, { transaction: t }) //entity contact person
@@ -141,15 +80,11 @@ const newInsurer = async (req, res) => {
     req.body.contactPerson.entityID = contact.id
     const locationContact = await Location.create(req.body.contactPerson, { transaction: t }) // location contact person
   
-  const insurer = await Insurer.create(req.body.insurer, { transaction: t })
+    console.log(`>>> gen contact id : ${contact.id}, locationContact id : ${locationContact.id} finished`);
+    const insurer = await Insurer.create(req.body.insurer, { transaction: t })
 
-    // for (let i = 0; i < req.body.commOVIn.length; i++) {
-    //   req.body.commOVIn[i].insurerCode = req.body.insurer.insurerCode
-    //   await  CommOVIn.create(req.body.commOVIn[i], { transaction: t })
+    console.log(`+++++ [finished] created insurer : ${req.body.insurer.insurerCode} success!!`);
 
-    // }
-
-    // res.json({ ...insurer, ...entity, ...location });
     await t.commit();
     await res.json({
       msg: `created insurer : ${req.body.insurer.insurerCode} success!!`,
@@ -233,62 +168,39 @@ const updateInsurer = async (req, res) => {
   const t = await sequelize.transaction();
   try {
     
+console.log("+++++ [method] : updateInsurer ++++++");
     //update insurer
-    console.log(`----------------- update insurer  -----------`);
-     await Insurer.update(req.body.insurer, {
+    console.log(`>>> update insurer  : ${req.body.insurer.insurerCode}`);
+    //update agent
+    req.body.entity.id = null
+    await Insurer.update({lastversion: 'N'}, {
       where: {
         id : req.body.insurer.id,
       },
       transaction: t
     });
-    
+     req.body.insurer.id = null
     //update entity insurer
-    console.log(`----------------- update insurer entity -----------`);
-    await Entity.update(req.body.entity, {
-      where: {
-        id : req.body.entity.id,
-      },
-      transaction: t
-    });
+     const entity = await Entity.create(req.body.entity, { transaction: t })
+    req.body.insurer.entityID = entity.id
+    req.body.location.entityID = entity.id
+    
+    req.body.location.id = null
+    const location = await Location.create(req.body.location, { transaction: t })
   
-    //update location insurer
-    console.log(`----------------- update insurer location -----------`);
-    await Location.update(req.body.location, {
-      where: {
-        id : req.body.location.id,
-      },
-      transaction: t
-    });
+   console.log(`>>> gen entity id : ${entity.id} ,location id : ${location.id}  finished`);
+    // contact person 
+    req.body.contactPerson.id = null
+    const contact = await Entity.create(req.body.contactPerson, { transaction: t }) //entity contact person
+    req.body.insurer.contactPersonID = contact.id
+    req.body.contactPerson.entityID = contact.id
+    const locationContact = await Location.create(req.body.contactPerson, { transaction: t }) // location contact person
+  
+    console.log(`>>> gen contact id : ${contact.id}, locationContact id : ${locationContact.id} finished`);
+    const insurer = await Insurer.create(req.body.insurer, { transaction: t })
     
-    
-     //update entity insurer
-     console.log(`----------------- update contactPerson entity -----------`);
-     delete req.body.contactPerson.id 
-     
-     await Entity.update(req.body.contactPerson, {
-       where: {
-         id : req.body.contactPerson.entityID,
-       },
-       transaction: t
-     });
+    console.log(`+++++ [finished] updated insurer : ${req.body.insurer.insurerCode} success!!`);
 
-    console.log(`----------------- update contactPerson location -----------`);
-    await Location.update(req.body.contactPerson, {
-      where: {
-        id :  req.body.contactPerson.locationid,
-      },
-      transaction: t
-    });
-    // const contact = await Entity.create(req.body.contactPerson, { transaction: t }) //entity contact person
-    // req.body.insurer.contactPersonID = contact.id
-    // req.body.contactPerson.entityID = contact.id // for location
-    // const locationContact = await Location.create(req.body.contactPerson, { transaction: t }) // location contact person
-    
-  // const insurer = await Insurer.create(req.body.insurer, { transaction: t })
-
-    //update insurer
-   
-    // res.json({ ...insurer, ...entity, ...location });
     await t.commit();
     await res.json({
       msg: `updated insurer : ${req.body.insurer.insurerCode} success!!`,
@@ -301,8 +213,9 @@ const updateInsurer = async (req, res) => {
 };
 
 //get agent all
-const getAgentAll = (req, res) => {
-  sequelize.query(
+const getAgentAll = async (req, res) => {
+  try{
+  const agents = await sequelize.query(
     `select *,
     (case when e."personType" = 'O' then t."TITLETHAIBEGIN"||' '||e."t_ogName" || COALESCE(' สาขา '|| e."t_branchName",'' ) || ' '|| t."TITLETHAIEND" else t."TITLETHAIBEGIN"||' '||e."t_firstName"||' '||e."t_lastName"  end) as "fullName" ,
     agt.id as id
@@ -310,23 +223,30 @@ const getAgentAll = (req, res) => {
      JOIN static_data."Entities" e ON agt."entityID" = e."id"
      join static_data."Titles" t on e."titleID" = t."TITLEID" 
      where agt.lastversion ='Y' order by agt."agentCode" ;`,
-    { type: QueryTypes.SELECT }).then((agent) => {
-      res.json(agent);
-    });
+    { type: QueryTypes.SELECT })
   
+    await res.json(agents);
+  } catch (error) {
+    console.error(error)
+    await res.status(500).json(error);
+  
+    // await res.status(500).json({ msg: "internal server error" });
+  }
 };
 
 //use create agent
 const newAgent = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-
+    console.log("+++++ [method] : newAgent ++++++");
     const entity = await Entity.create(req.body.entity, { transaction: t }) //entity agent
     req.body.agent.entityID = entity.id
     req.body.location.entityID = entity.id
+    
+   console.log(`>>> gen entity id : ${entity.id} finished`);
     if (req.body.entity.ignoreLocation ) {
       const location = await Location.create(req.body.location, { transaction: t }) // location agent
-      
+      console.log(`>>> gen location id : ${location.id}  finished`);
     }
     
     // contact person when agent is organization
@@ -335,6 +255,8 @@ const newAgent = async (req, res) => {
     req.body.agent.contactPersonID = contact.id
     req.body.contactPerson.entityID = contact.id
     const locationContact = await Location.create(req.body.contactPerson, { transaction: t }) // location contact person
+    
+    console.log(`>>> gen contact id : ${contact.id}, locationContact id : ${locationContact.id} finished`);
   } 
   if (req.body.entity.vatRegis) {
     req.body.agent.vatflag = 'Y'
@@ -347,6 +269,8 @@ const newAgent = async (req, res) => {
 
     // }
     // res.json({...agent, ...entity,...location});
+
+    console.log(`+++++ [finished] created agent : ${req.body.agent.agentCode} success!!`);
     await t.commit();
     await res.json({
       msg: `created agent : ${req.body.agent.agentCode} success!!`,
@@ -357,32 +281,22 @@ const newAgent = async (req, res) => {
     await res.status(500).json(error);
   }
 };
+
 //use update agent
 const updateAgent = async (req, res) => {
   const t = await sequelize.transaction();
   try {
-    //update entity agent
-    await Entity.update({lastversion: 'N'}, {
-      where: {
-        id : req.body.entity.id,
-      },
-      transaction: t
-    });
-    req.body.entity.id = null
+    console.log("+++++ [method] : updateAgent ++++++");
+   
     //update agent
+     console.log(`>>> update agent  : ${req.body.agent.agentCode}`);
     await Agent.update({lastversion: 'N'}, {
       where: {
         id : req.body.agent.id,
       },
       transaction: t
     });
-     //update commovouts
-     await CommOVOut.update({lastversion: 'N'}, {
-      where: {
-        agentCode : req.body.agent.agentCode
-      },
-      transaction: t
-    });
+
     req.body.agent.id = null
     //create new entity agent
     const entity = await Entity.create(req.body.entity, { transaction: t })
@@ -392,7 +306,7 @@ const updateAgent = async (req, res) => {
    //create new location agent
     req.body.location.id = null
     const location = await Location.create(req.body.location, { transaction: t })
-  
+   console.log(`>>> gen entity id : ${entity.id} ,location id : ${location.id} finished`);
     // create new contact person 
     if (req.body.entity.personType === 'O') {
     req.body.contactPerson.id = null
@@ -400,16 +314,17 @@ const updateAgent = async (req, res) => {
     req.body.agent.contactPersonID = contact.id
     req.body.contactPerson.entityID = contact.id // for location
     const locationContact = await Location.create(req.body.contactPerson, { transaction: t }) // location contact person
+console.log(`>>> gen contact id : ${contact.id}, locationContact id : ${locationContact.id} finished`);
   }
   const agent = await Agent.create(req.body.agent, { transaction: t })
 
    
-    for (let i = 0; i < req.body.commOVOut.length; i++) {
-      req.body.commOVOut[i].id = null
-      req.body.commOVOut[i].agentCode = agent.agentCode
-      await  CommOVOut.create(req.body.commOVOut[i], { transaction: t })
+    // for (let i = 0; i < req.body.commOVOut.length; i++) {
+    //   req.body.commOVOut[i].id = null
+    //   req.body.commOVOut[i].agentCode = agent.agentCode
+    //   await  CommOVOut.create(req.body.commOVOut[i], { transaction: t })
 
-    }
+    // }
     // res.json({ ...insurer, ...entity, ...location });
     await t.commit();
     await res.json({
@@ -470,7 +385,9 @@ const findAgent = async (req, res) =>{
     await res.json(agents);
   } catch (error) {
     console.error(error)
-    await res.status(500).json({ msg: "internal server error" });
+    await res.status(500).json(error);
+  
+    // await res.status(500).json({ msg: "internal server error" });
   }
 
 }
@@ -708,25 +625,19 @@ const getInsurerByInsurerCode = async (req,res) =>{
   } 
 
 module.exports = {
-  //   showAll,
-  getEntityByid,
-  newEntity,
-  getInsureeByid,
-  newInsuree,
-  getInsurerByid,
-  newInsurer,
-  getAgentAll,
-  newAgent,
-  getUserByid,
+
   newUser,
-  getAgentGroupByid,
-  newAgentGroup,
+  getUserByid,
+  
+  newInsurer,
+  updateInsurer,
   getInsurerAll,
+  newAgent,
+  updateAgent,
+  getAgentAll,
   findAgent,
+  findInsuree,
   findAgentInsurer,
   getAgentByAgentCode,
   getInsurerByInsurerCode,
-  updateInsurer,
-  updateAgent,
-  findInsuree,
 };

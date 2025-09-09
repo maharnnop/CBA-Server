@@ -24,15 +24,21 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, pr
 //     })
 // }
 
-const showAllinProvince = (req, res) => {
-  Amphur.findAll ({
-    attributes: ['amphurid', 't_amphurname','e_amphurname','provinceid'],
-    where: {
-        provinceid: req.params.index
-    },order:[['t_amphurname',  'ASC']],
-  }).then((amphur) => {
-    res.json(amphur);
-  });
+const showAllinProvince = async  (req, res) => {
+  try {
+    
+    const amphurs = await Amphur.findAll ({
+      attributes: ['amphurid', 't_amphurname','e_amphurname','provinceid'],
+      where: {
+          provinceid: req.params.index
+      },order:[['t_amphurname',  'ASC']],
+    })
+    res.json(amphurs);
+  } catch (error) {
+
+    console.error(error.message)
+     res.status(500).json({ message: error.message });
+  }
 };
 
 const showAllinProvincename = (req,res)=>{

@@ -82,6 +82,7 @@ module.exports = (sequelize, DataTypes) => {
 
     
     source : DataTypes.STRING,
+    previouspolicy : DataTypes.STRING,
 
 
 

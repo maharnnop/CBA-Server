@@ -188,7 +188,7 @@ const newCommOVIn = (req, res) => {
   };
   const getCommOVOut = async (req, res) => {
      sequelize.query(
-      `select comout.*, comin.* ,
+      `select comout.*, comin.* 
       a."premCreditT" as  "creditTAgent", a."premCreditUnit" as  "creditUAgent" ,
       i."premCreditT" as  "creditTInsurer", i."premCreditUnit" as  "creditUInsurer" 
       FROM static_data."CommOVOuts" comout 
@@ -256,7 +256,10 @@ const getCommOVInAll = async (req, res) => {
   }
   console.log(`----------------  insurerCode ${req.body.insurerCode} -------------`);
   sequelize.query(
-    `select it.id as insureID, class, "subClass" ,"insureName" , co.id as comminid ,co."insurerCode" ,co."rateComIn" ,co."rateOVIn_1"  from static_data."InsureTypes" it 
+    `select it.id as insureID, class, "subClass" ,"insureName" , co.id as comminid ,co."insurerCode" 
+    -- ,co."rateComIn" ,co."rateOVIn_1" 
+     ,COALESCE(co."rateComIn",0)  as "rateComIn", COALESCE(co."rateOVIn_1",0)  as "rateOVIn_1"
+     from static_data."InsureTypes" it 
     left join static_data."CommOVIns" co on co."insureID" =it.id and co."insurerCode" =:insurerCode and co.lastversion ='Y' ;
     `,
     {
@@ -361,7 +364,9 @@ const getCommOVOutAll = async (req, res) => {
   }
   console.log(`----------------  agentCode ${req.body.agentCode} -------------`);
   const records = await sequelize.query(
-    `select ci."insureID" as insureID , class, "subClass" ,"insureName"  , co.id as commoutid,  ci."insurerCode" , :agentCode as "agentCode" ,co."rateComOut" , co."rateOVOut_1" 
+    `select ci."insureID" as insureID , class, "subClass" ,"insureName"  , co.id as commoutid,  ci."insurerCode" , :agentCode as "agentCode" 
+     -- ,co."rateComOut" ,co."rateOVOut_1" 
+    ,COALESCE(co."rateComOut",0)  as "rateComOut", COALESCE(co."rateOVOut_1",0)  as "rateOVOut_1"
     from static_data."InsureTypes" it 
      join static_data."CommOVIns" ci on ci."insureID" =it.id  and ci.lastversion ='Y' 
     left outer join static_data."CommOVOuts" co on "agentCode" = :agentCode and ci."insureID" = co."insureID" and co.lastversion ='Y' and co."insurerCode" = ci."insurerCode"

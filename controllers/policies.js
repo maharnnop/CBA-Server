@@ -789,9 +789,8 @@ const getPolicyListChangestatus = async (req, res) => {
     TO_CHAR(pol."updatedAt", 'dd/MM/yyyy HH24:MI:SS') AS "polupdatedAt",
      inst.class as class, inst."subClass" as "subClass",
     ent."personType" as "insureePT",
-    (tt."TITLETHAIBEGIN" ||' '||
-    (case when trim(ent."personType") = 'O' then ent."t_ogName"|| COALESCE(' สาขา '|| ent."t_branchName",'' ) else ent."t_firstName" || ' ' || ent."t_lastName" end)
-    || '  ' || tt."TITLETHAIEND" ) as "fullName",
+    getname(ine."entityID") as "fullName",
+    (select amityflag  from static_data."Agents" a  where a."agentCode" = pol."agentCode"  and a.lastversion ='Y' ) as amityflag,
     (select t_provincename  from static_data.provinces p where provinceid = mt."motorprovinceID" ) as motorprovince
     from static_data."Policies" pol 
     join static_data."InsureTypes" inst on inst.id = pol."insureID"
@@ -817,9 +816,7 @@ const getPolicyListChangestatus = async (req, res) => {
     -- TO_CHAR(pol."createdAt", 'dd/MM/yyyy HH24:MI:SS') AS "polcreatedAt",
     -- TO_CHAR(pol."updatedAt", 'dd/MM/yyyy HH24:MI:SS') AS "polupdatedAt"
     --  inst.class as class, inst."subClass" as "subClass",
-     (tt."TITLETHAIBEGIN" ||' '||
-     (case when trim(ent."personType") = 'O' then ent."t_ogName"|| COALESCE(' สาขา '|| ent."t_branchName",'' ) else ent."t_firstName" || ' ' || ent."t_lastName" end)
-     || '  ' || tt."TITLETHAIEND" ) as "fullName"
+     getname(ft."entityID") as "fullName"
     from static_data."Fleets" ft
     join static_data."Policies" pol  on ft."fleetCode" = pol."fleetCode"
     left join static_data."Entities" ent on ent.id = ft."entityID" 
@@ -842,302 +839,6 @@ const getPolicyListChangestatus = async (req, res) => {
 
 
 
-const newPolicyList = async (req, res) => {
-  const jwt = req.headers.authorization.split(' ')[1];
-  const usercode = decode(jwt).USERNAME;
-  for (let i = 0; i < req.body.length; i++) {
-    //create entity 
-    const t = await sequelize.transaction();
-    try {
-      await sequelize.query(
-        'insert into static_data."Entities" ("personType","titleID","t_ogName","t_firstName","t_lastName","idCardType","idCardNo","taxNo") ' +
-        'values (:personType, (select "TITLEID" from static_data."Titles" where "TITLETHAIBEGIN" = :title limit 1), :t_ogName, :t_firstName, :t_lastName,:idCardType,:idCardNo,:taxNo) ' +
-        'ON CONFLICT ((case when :personType = \'P\' then "idCardNo" else "taxNo" end)) DO NOTHING RETURNING "id" ',
-        {
-          replacements: {
-            personType: req.body[i].personType,
-            title: req.body[i].title,
-            t_ogName: req.body[i].t_ogName,
-            t_firstName: req.body[i].t_firstName,
-            t_lastName: req.body[i].t_lastName,
-            idCardType: req.body[i].idCardType,
-            idCardNo: req.body[i].idCardNo,
-            taxNo: req.body[i].taxNo
-          },
-          transaction: t,
-          type: QueryTypes.INSERT
-        }
-      ).then(async (entity) => {
-
-        let insureeCode
-
-        if (entity[1] === 1) {   // entity[1] === 1 when create new entity
-
-
-          const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: 'A' + entity[0][0].id }, { returning: ['insureeCode'] })
-
-          insureeCode = insuree['dataValues'].insureeCode
-
-          //create location
-          await sequelize.query(
-
-            'INSERT INTO static_data."Locations" ("entityID", "t_location_1", "t_location_2", "t_location_3", "t_location_4", "t_location_5", "provinceID", "districtID", "subDistrictID", "zipcode", "telNum_1","locationType") ' +
-            'values(:entityID, :t_location_1, :t_location_2,  :t_location_3, :t_location_4, :t_location_5, ' +
-            '(select "provinceid" from static_data.provinces where t_provincename = :province limit 1), ' +
-            '(select "amphurid" from static_data."Amphurs" where t_amphurname = :district limit 1), ' +
-            '(select "tambonid" from static_data."Tambons" where t_tambonname = :tambon limit 1), ' +
-            ':zipcode, :tel_1, :locationType) ',
-            {
-              replacements: {
-                entityID: entity[0][0].id,
-                t_location_1: req.body[i].t_location_1.toString(),
-                t_location_2: req.body[i].t_location_2.toString(),
-                t_location_3: req.body[i].t_location_3.toString(),
-                t_location_4: req.body[i].t_location_4.toString(),
-                t_location_5: req.body[i].t_location_5.toString(),
-                province: req.body[i].province,
-                district: req.body[i].district,
-                tambon: req.body[i].subdistrict,
-                zipcode: req.body[i].zipcode.toString(),
-                tel_1: req.body[i].telNum_1,
-                locationType: 'A'
-              },
-              transaction: t,
-              type: QueryTypes.INSERT
-            }
-          )
-        } else {
-          //select insuree
-          const insuree = await sequelize.query(
-            `select * FROM static_data."Insurees" ins 
-          JOIN static_data."Entities" ent ON ins."entityID" = ent."id" 
-          WHERE 
-          (CASE WHEN ent."personType" = 'P' THEN "idCardNo" ELSE "taxNo" END) = :idNo 
-          and ins.lastversion = 'Y' `,
-            { replacements: { idNo: req.body[i].personType === "P" ? req.body[i].idCardNo : req.body[i].taxNo }, transaction: t, type: QueryTypes.SELECT })
-
-          insureeCode = insuree[0].insureeCode
-
-
-        }
-
-        //insert new car or select
-        let cars = [{ id: null }]
-        if (req.body[i].class === 'MO') {
-          cars = await sequelize.query(
-            'WITH inserted AS ( ' +
-            'INSERT INTO static_data."Motors" ("brand", "voluntaryCode", "model", "specname", "licenseNo", "motorprovinceID", "chassisNo", "modelYear") ' +
-            'VALUES (:brandname, :voluntaryCode , :modelname , :specname, :licenseNo, :motorprovinceID, :chassisNo, :modelYear) ON CONFLICT ("chassisNo") DO NOTHING RETURNING * ) ' +
-            'SELECT * FROM inserted UNION ALL SELECT * FROM static_data."Motors" WHERE "chassisNo" = :chassisNo ',
-            {
-              replacements: {
-                licenseNo: req.body[i].licenseNo,
-                chassisNo: req.body[i].chassisNo,
-                brandname: req.body[i].brandname,
-                voluntaryCode: req.body[i].voluntaryCode || '220',
-                modelname: req.body[i].modelname || null,
-                specname: 'tesz',
-                // motorprovinceID: req.body[i].motorprovinceID,
-                motorprovinceID: 2,
-                modelYear: req.body[i].modelYear,
-              },
-              transaction: t,
-              type: QueryTypes.SELECT
-            }
-          )
-        }
-
-        //set defualt comm ov if null 
-        const commov = await sequelize.query(
-          'select * FROM static_data."CommOVOuts" comout ' +
-          'JOIN static_data."CommOVIns" comin ' +
-          'ON comin."insurerCode" = comout."insurerCode" and comin."insureID" = comout."insureID" ' +
-          'where comout."agentCode" = :agentcode ' +
-          'and comout."insureID" = (select "id" from static_data."InsureTypes" where "class" = :class and  "subClass" = :subClass) ' +
-          'and comout."insurerCode" = :insurerCode',
-          {
-            replacements: {
-              agentcode: req.body[i].agentCode,
-              class: req.body[i].class,
-              subClass: req.body[i].subClass,
-              insurerCode: req.body[i].insurerCode,
-            },
-            transaction: t,
-            type: QueryTypes.SELECT
-          }
-        )
-        //undefined comm/ov in
-        if (req.body[i][`commin_rate`] === undefined || req.body[i][`commin_rate`] === null) {
-          req.body[i][`commin_rate`] = commov[0].rateComIn
-          req.body[i][`commin_amt`] = commov[0].rateComIn * req.body[i][`netgrossprem`] / 100
-        }
-        if (req.body[i][`ovin_rate`] === undefined || req.body[i][`ovin_rate`] === null) {
-          req.body[i][`ovin_rate`] = commov[0].rateOVIn_1
-          req.body[i][`ovin_amt`] = commov[0].rateOVIn_1 * req.body[i][`netgrossprem`] / 100
-        }
-
-        req.body[i][`commin_taxamt`] = req.body[i][`commin_amt`] * wht
-        req.body[i][`ovin_taxamt`] = req.body[i][`ovin_amt`] * wht
-
-
-        //undefined comm/ov out agent 1 
-        if (req.body[i][`commout1_rate`] === undefined || req.body[i][`commout1_rate`] === null) {
-          req.body[i][`commout1_rate`] = commov[0].rateComOut
-          req.body[i][`commout1_amt`] = commov[0].rateComOut * req.body[i][`netgrossprem`] / 100
-        }
-        if (req.body[i][`ovout1_rate`] === undefined || req.body[i][`ovout1_rate`] === null) {
-          req.body[i][`ovout1_rate`] = commov[0].rateOVOut_1
-          req.body[i][`ovout1_amt`] = commov[0].rateOVOut_1 * req.body[i][`netgrossprem`] / 100
-        }
-
-        //check agentcode2
-        if (req.body[i][`agentCode2`]) {
-          const commov2 = await sequelize.query(
-            'select * FROM static_data."CommOVOuts" comout ' +
-            'where comout."agentCode" = :agentcode ' +
-            'and comout."insureID" = (select "id" from static_data."InsureTypes" where "class" = :class and  "subClass" = :subClass) ' +
-            'and comout."insurerCode" = :insurerCode',
-            {
-              replacements: {
-                agentcode: req.body[i].agentCode2,
-                class: req.body[i].class,
-                subClass: req.body[i].subClass,
-                insurerCode: req.body[i].insurerCode,
-              },
-              type: QueryTypes.SELECT
-            }
-          )
-          if (req.body[i][`commout2_rate`] === null && req.body[i][`ovout2_rate`] === null) {
-            req.body[i][`commout2_rate`] = commov2[0].rateComOut
-            req.body[i][`commout2_amt`] = commov2[0].rateComOut * req.body[i][`netgrossprem`] / 100
-            req.body[i][`ovout2_rate`] = commov2[0].rateOVOut_1
-            req.body[i][`ovout2_amt`] = commov2[0].rateOVOut_1 * req.body[i][`netgrossprem`] / 100
-          }
-          req.body[i][`commout_rate`] = req.body[i][`commout1_rate`] + req.body[i][`commout2_rate`]
-          req.body[i][`commout_amt`] = req.body[i][`commout1_amt`] + req.body[i][`commout2_amt`]
-          req.body[i][`ovout_rate`] = req.body[i][`ovout1_rate`] + req.body[i][`ovout2_rate`]
-          req.body[i][`ovout_amt`] = req.body[i][`ovout1_amt`] + req.body[i][`ovout2_amt`]
-
-        } else {
-          req.body[i][`agentCode2`] = null
-          req.body[i][`commout2_rate`] = null
-          req.body[i][`commout2_amt`] = null
-          req.body[i][`ovout2_rate`] = null
-          req.body[i][`ovout2_amt`] = null
-          req.body[i][`commout_rate`] = req.body[i][`commout1_rate`]
-          req.body[i][`commout_amt`] = req.body[i][`commout1_amt`]
-          req.body[i][`ovout_rate`] = req.body[i][`ovout1_rate`]
-          req.body[i][`ovout_amt`] = req.body[i][`ovout1_amt`]
-        }
-
-        //cal withheld 1% 
-        if (req.body[i].personType.trim() === 'O') {
-          req.body[i].withheld = Number(((req.body[i].netgrossprem + req.body[i].duty) * withheld).toFixed(2))
-        } else {
-          req.body[i].withheld
-        }
-
-        //get application no
-        const currentdate = getCurrentDate()
-        req.body[i].applicationNo = `APP-${getCurrentYY()}` + await getRunNo('app', null, null, 'kw', currentdate, t);
-        console.log(req.body[i].applicationNo);
-
-        //insert policy
-        const policy = await sequelize.query(
-          'insert into static_data."Policies" ("applicationNo","insureeCode","insurerCode","agentCode","agentCode2","insureID","actDate", "expDate" ,grossprem, duty, tax, totalprem, ' +
-          'commin_rate, commin_amt, ovin_rate, ovin_amt, commin_taxamt, ovin_taxamt, commout_rate, commout_amt, ovout_rate, ovout_amt, createusercode, "itemList","status", ' +
-          'commout1_rate, commout1_amt, ovout1_rate, ovout1_amt, commout2_rate, commout2_amt, ovout2_rate, ovout2_amt, netgrossprem, specdiscrate, specdiscamt, cover_amt, "policyNo", "policyDate", "issueDate", "policyType", withheld ) ' +
-          // 'values (:policyNo, (select "insureeCode" from static_data."Insurees" where "entityID" = :entityInsuree), '+
-          'values ( :applicationNo, :insureeCode, ' +
-          '(select "insurerCode" from static_data."Insurers" where "insurerCode" = :insurerCode), ' +
-          ':agentCode, :agentCode2, (select "id" from static_data."InsureTypes" where "class" = :class and  "subClass" = :subClass), ' +
-          ':actDate, :expDate, :grossprem, :duty, :tax, :totalprem, ' +
-          ':commin_rate, :commin_amt, :ovin_rate, :ovin_amt, :commin_taxamt, :ovin_taxamt, :commout_rate, :commout_amt, :ovout_rate, :ovout_amt, :createusercode, :itemList ,\'A\', ' +
-          ' :commout1_rate, :commout1_amt, :ovout1_rate, :ovout1_amt,  :commout2_rate, :commout2_amt, :ovout2_rate, :ovout2_amt, :netgrossprem,  :specdiscrate, :specdiscamt, :cover_amt, :policyNo, :policyDate, :issueDate, :policyType, :withheld) Returning id`',
-          {
-            replacements: {
-              applicationNo: req.body[i].applicationNo,
-              insureeCode: insureeCode,
-              insurerCode: req.body[i].insurerCode,
-              class: req.body[i].class,
-              subClass: req.body[i].subClass,
-              agentCode: req.body[i].agentCode,
-              agentCode2: req.body[i].agentCode2,
-              actDate: req.body[i].actDate,
-              expDate: req.body[i].expDate,
-              grossprem: req.body[i].grossprem,
-              netgrossprem: req.body[i].netgrossprem,
-              duty: req.body[i].duty,
-              tax: req.body[i].tax,
-              totalprem: req.body[i].totalprem,
-              specdiscrate: req.body[i][`specdiscrate`],
-              specdiscamt: req.body[i][`specdiscamt`],
-              commin_rate: req.body[i][`commin_rate`],
-              commin_amt: req.body[i][`commin_amt`],
-              ovin_rate: req.body[i][`ovin_rate`],
-              ovin_amt: req.body[i][`ovin_amt`],
-              commin_taxamt: req.body[i][`commin_taxamt`],
-              ovin_taxamt: req.body[i][`ovin_taxamt`],
-              commout_rate: req.body[i][`commout_rate`],
-              commout_amt: req.body[i][`commout_amt`],
-              ovout_rate: req.body[i][`ovout_rate`],
-              ovout_amt: req.body[i][`ovout_amt`],
-              commout1_rate: req.body[i][`commout1_rate`],
-              commout1_amt: req.body[i][`commout1_amt`],
-              ovout1_rate: req.body[i][`ovout1_rate`],
-              ovout1_amt: req.body[i][`ovout1_amt`],
-              commout2_rate: req.body[i][`commout2_rate`],
-              commout2_amt: req.body[i][`commout2_amt`],
-              ovout2_rate: req.body[i][`ovout2_rate`],
-              ovout2_amt: req.body[i][`ovout2_amt`],
-              cover_amt: req.body[i][`cover_amt`],
-              createusercode: usercode,
-              itemList: cars[0].id,
-              policyNo: req.body[i].policyNo,
-              policyDate: new Date().toJSON().slice(0, 10),
-              issueDate: req.body[i][`issueDate`],
-              policyType: "F",
-              withheld: req.body[i]['withheld'],
-
-            },
-            transaction: t,
-            type: QueryTypes.INSERT
-          }
-        )
-        console.log(policy[0][0].id);
-        //insert jupgr
-        req.body[i].polid = policy[0][0].id
-        //check installment 
-        if (!req.body[i].installment) {
-          req.body[i].installment = { advisor: [], insurer: [] }
-        }
-
-        await createjupgr(req.body[i], t, usercode)
-
-        //insert transaction 
-        await createTransection(req.body[i], t)
-        // await createTransection(req.body[i],t)
-
-        // insert  jugltx table -> ลงผังบัญชี
-        await account.insertjugltx('POLICY', req.body[i].policyNo, t)
-
-      })
-      await t.commit();
-      // If the execution reaches this line, an error was thrown.
-      // We rollback the transaction.
-    } catch (error) {
-      console.error(error)
-      await t.rollback();
-      await res.status(500).json(error);
-      return "fail"
-
-    }
-
-  }
-
-  await res.json({ status: 'success' })
-
-};
 
 // ok งานรายย่อย
 const draftPolicyMinor = async (req, res) => {
@@ -1155,20 +856,27 @@ const draftPolicyMinor = async (req, res) => {
       let checkEntity
       let entityType = 'new' // new ลูกค้าใหม่ old ลูกค้าเดิม  update ลูกค้าเดิมแต่ชื่อเปลี่ยน
       req.body[i].version = 1
-      const upsert = upsertEntityInsuree(req.body[i] ,t)
+      console.log('>>> check dup upsertEntityInsuree()');
+      const upsert = await upsertEntityInsuree(req.body[i] ,t)
+      console.log('>>> finished check dup ');
+      // console.log(JSON.stringify(upsert));
      entity = upsert.entity
      checkEntity = upsert.checkEntity
      entityType = upsert.entityType
         
 
-      console.log(entity);
+      console.log(JSON.stringify(entity));
       let insureeCode
+      let insureeVersion
       if (entity[1] === 1) {   // entity[1] === 1 when create new entity
 
         if(entityType === 'update'){
           
-          const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: checkEntity[0].insureeCode, version: req.body[i].int_version+1, }, { returning: ['insureeCode'], transaction: t })
+          const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: checkEntity[0].insureeCode, version: req.body[i].int_version+1, }, { returning: ['insureeCode','version'], transaction: t })
+          console.log('>>> update insuree obj ');
+          console.log(JSON.stringify(insuree));
           insureeCode = insuree['dataValues'].insureeCode
+          insureeVersion = insuree['dataValues'].version
            await sequelize.query(
               ` UPDATE static_data."Insurees" 
               SET lastversion  ='N'
@@ -1181,8 +889,12 @@ const draftPolicyMinor = async (req, res) => {
                 type: QueryTypes.UPDATE
               })
         }else if(entityType === 'new') {
-          const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode:  entity[0][0].id, version: req.body[i].version, }, { returning: ['insureeCode'], transaction: t })
+
+          const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode:  entity[0][0].id, version: req.body[i].version, }, { returning: ['insureeCode', 'version'], transaction: t })
+          console.log('>>> new insuree obj ');
+          console.log(JSON.stringify(insuree));
           insureeCode = insuree['dataValues'].insureeCode
+          insureeVersion  = insuree['dataValues'].version
         }
 
 
@@ -1228,7 +940,7 @@ const draftPolicyMinor = async (req, res) => {
                         and ent."branch" = :branch `
         ]
         const insuree = await sequelize.query(
-          `select * FROM static_data."Insurees" ins JOIN static_data."Entities" ent ON ins."entityID" = ent."id"
+          `select ins.version as ins_ver ,* FROM static_data."Insurees" ins JOIN static_data."Entities" ent ON ins."entityID" = ent."id"
            WHERE ${conInsuree}
            and ins.lastversion = 'Y' `,
           {
@@ -1245,10 +957,13 @@ const draftPolicyMinor = async (req, res) => {
           })
 
         insureeCode = insuree[0].insureeCode
+        insureeVersion  = insuree[0].ins_ver
 
 
       }
 
+      console.log(`>> insureeCode : ${insureeCode} , insureeVersion : ${insureeVersion}`);
+      
       //insert new car or select
       let cars = [{ id: null }]
       if (req.body[i].class === 'MO') {
@@ -1434,14 +1149,14 @@ const draftPolicyMinor = async (req, res) => {
 //#endregion
       //insert policy
       await sequelize.query(
-        ` insert into static_data."Policies" ("applicationNo","insureeCode","insurerCode","agentCode","agentCode2","insureID","actDate", "expDate" ,grossprem, duty, tax, totalprem, 
+        ` insert into static_data."Policies" ("applicationNo","insureeCode","insureeVersion","insurerCode","agentCode","agentCode2","insureID","actDate", "expDate" ,grossprem, duty, tax, totalprem, 
         commin_rate, commin_amt, ovin_rate, ovin_amt, commin_taxamt, ovin_taxamt, commout_rate, commout_amt, ovout_rate, ovout_amt,
         commout1_taxamt, ovout1_taxamt, commout2_taxamt, ovout2_taxamt, commout_taxamt, ovout_taxamt,
         createusercode, "itemList","insurancestatus" ,
         commout1_rate, commout1_amt, ovout1_rate, ovout1_amt, commout2_rate, commout2_amt, ovout2_rate, ovout2_amt, netgrossprem, specdiscrate, specdiscamt, cover_amt, withheld,
         duedateinsurer, duedateagent, endorseseries) 
         -- 'values (:policyNo, (select "insureeCode" from static_data."Insurees" where "entityID" = :entityInsuree and lastversion = 'Y'), '+
-        values ( :applicationNo, :insureeCode, 
+        values ( :applicationNo, :insureeCode, :insureeVersion,
         (select "insurerCode" from static_data."Insurers" where "insurerCode" = :insurerCode and lastversion = 'Y' ), 
         :agentCode, :agentCode2, (select "id" from static_data."InsureTypes" where "class" = :class and  "subClass" = :subClass ), 
         :actDate, :expDate, :grossprem, :duty, :tax, :totalprem, 
@@ -1460,6 +1175,7 @@ const draftPolicyMinor = async (req, res) => {
             // seqNoagt: req.body[i].seqNoagt,
             // entityInsuree:
             insureeCode: insureeCode,
+            insureeVersion : insureeVersion,
             insurerCode: req.body[i].insurerCode,
             class: req.body[i].class,
             subClass: req.body[i].subClass,
@@ -1613,6 +1329,7 @@ const upsertEntityInsuree = async (data ,t) =>{
       return { entity : entity, checkEntity: checkEntity ,entityType : entityType }
        } catch (error) {
     
+    console.error(error)
     throw new Error(error)
   }
 
@@ -1743,13 +1460,14 @@ console.log('step check duplicate entity if idcard type = "บัตรประ
       console.log(entity);
       
       let insureeCode
+      let insureeVersion
       if (entity[1] === 1) {   // entity[1] === 1 when create new entity
 
 
-        const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: entity[0][0].id, version: policyData[i].version, }, { returning: ['insureeCode'], transaction: t })
+        const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: entity[0][0].id, version: policyData[i].version, }, { returning: ['insureeCode','version'], transaction: t })
 
         insureeCode = insuree['dataValues'].insureeCode
-
+        insureeVersion = insuree['dataValues'].version
         //create location
         await sequelize.query(
 
@@ -2039,14 +1757,14 @@ console.log('step check duplicate entity if idcard type = "บัตรประ
 
       //#region insert policy
       await sequelize.query(
-        ` insert into static_data."Policies" ("policyNo", "issueDate", "applicationNo","insureeCode","insurerCode","agentCode","agentCode2","insureID","actDate", "expDate" ,grossprem, duty, tax, totalprem, 
+        ` insert into static_data."Policies" ("policyNo", "issueDate", "applicationNo","insureeCode","insureeVersion" ,"insurerCode","agentCode","agentCode2","insureID","actDate", "expDate" ,grossprem, duty, tax, totalprem, 
         commin_rate, commin_amt, ovin_rate, ovin_amt, commin_taxamt, ovin_taxamt, commout_rate, commout_amt, ovout_rate, ovout_amt,
         commout1_taxamt, ovout1_taxamt, commout2_taxamt, ovout2_taxamt, commout_taxamt, ovout_taxamt,
         createusercode, "itemList","insurancestatus" ,
         commout1_rate, commout1_amt, ovout1_rate, ovout1_amt, commout2_rate, commout2_amt, ovout2_rate, ovout2_amt, netgrossprem, specdiscrate, specdiscamt, cover_amt, withheld,
         duedateinsurer, duedateagent, endorseseries, "fleetCode", "invoiceNo", "taxInvoiceNo", "invoiceName", "beneficiary", polbatch) 
         -- 'values (:policyNo, (select "insureeCode" from static_data."Insurees" where "entityID" = :entityInsuree and lastversion = 'Y'), '+
-        values ( :policyNo, :issueDate , :applicationNo, :insureeCode, 
+        values ( :policyNo, :issueDate , :applicationNo, :insureeCode, :insureeVersion,
         (select "insurerCode" from static_data."Insurers" where "insurerCode" = :insurerCode and lastversion = 'Y' ), 
         :agentCode, :agentCode2, (select "id" from static_data."InsureTypes" where "class" = :class and  "subClass" = :subClass ), 
         :actDate, :expDate, :grossprem, :duty, :tax, :totalprem, 
@@ -2073,6 +1791,7 @@ console.log('step check duplicate entity if idcard type = "บัตรประ
             // seqNoagt: policyData[i].seqNoagt,
             // entityInsuree:
             insureeCode: insureeCode,
+            insureeVersion : insureeVersion,
             insurerCode: policyData[i].insurerCode,
             class: policyData[i].class,
             subClass: policyData[i].subClass,
@@ -4538,73 +4257,6 @@ const editApplication = async (req, res) => {
         }
       )
 
-      // console.log(entity);
-      // let insureeCode
-      // if (entity[1] === 1) {   // entity[1] === 1 when create new entity
-
-
-      //   const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode:  entity[0][0].id }, { returning: ['insureeCode'], transaction: t })
-
-      //   insureeCode = insuree['dataValues'].insureeCode
-
-      //   //create location
-      //   await sequelize.query(
-
-      //     'INSERT INTO static_data."Locations" ("entityID", "t_location_1", "t_location_2", "t_location_3", "t_location_4", "t_location_5", "provinceID", "districtID", "subDistrictID", "zipcode", "telNum_1","locationType") ' +
-      //     'values(:entityID, :t_location_1, :t_location_2,  :t_location_3, :t_location_4, :t_location_5, ' +
-      //     '(select "provinceid" from static_data.provinces where t_provincename = :province limit 1), ' +
-      //     '(select "amphurid" from static_data."Amphurs" where t_amphurname = :district limit 1), ' +
-      //     '(select "tambonid" from static_data."Tambons" where t_tambonname = :tambon limit 1), ' +
-      //     ':zipcode, :tel_1, :locationType) ',
-      //     {
-      //       replacements: {
-      //         entityID: entity[0][0].id,
-      //         t_location_1: req.body[i].t_location_1,
-      //         t_location_2: req.body[i].t_location_2,
-      //         t_location_3: req.body[i].t_location_3,
-      //         t_location_4: req.body[i].t_location_4,
-      //         t_location_5: req.body[i].t_location_5,
-      //         province: req.body[i].province,
-      //         district: req.body[i].district,
-      //         tambon: req.body[i].subdistrict,
-      //         zipcode: req.body[i].zipcode.toString(),
-      //         tel_1: req.body[i].telNum_1,
-      //         locationType: 'A'
-      //       },
-      //       transaction: t,
-      //       type: QueryTypes.INSERT
-      //     }
-      //   )
-      // } else {
-      //   //select insuree
-      //   let conInsuree = ''
-      //   if (req.body[i].personType === "P") {
-      //     conInsuree = `ent."personType" = 'P' and ent."idCardNo" = :idCardNo 
-      //                   and ent."titleID" = :titleID and ent."t_firstName" = :t_firstName 
-      //                   and ent."t_lastName" = :t_lastName and ent."idCardType" = :idCardType`
-      //   }else[
-      //     conInsuree = `ent."personType" = 'O' and ent."taxNo" = :taxNo 
-      //                   and ent."titleID" = :titleID and ent."t_ogName" = :t_ogName 
-      //                   and ent."branch" = :branch `
-      //   ]
-      //   const insuree = await sequelize.query(
-      //     `select * FROM static_data."Insurees" ins JOIN static_data."Entities" ent ON ins."entityID" = ent."id"
-      //      WHERE ${conInsuree}`,
-      //     { replacements: { 
-      //                     idCardNo: req.body[i].idCardNo ,
-      //                     taxNo: req.body[i].taxNo ,
-      //                     titleID: req.body[i].titleID ,
-      //                     t_firstName: req.body[i].t_firstName ,
-      //                     t_lastName: req.body[i].t_lastName ,
-      //                     t_ogName: req.body[i].t_ogName ,
-      //                     branch: req.body[i].branch ,
-      //                     idCardType: req.body[i].idCardType ,
-      //     },  transaction: t, type: QueryTypes.SELECT })
-
-      //  insureeCode = insuree[0].insureeCode
-
-
-      // }
 
       //update location
       await sequelize.query(
@@ -5492,12 +5144,15 @@ const externalPolicy = async (req, res) => {
 
     console.log(entity);
     let insureeCode
+    let insureeVersion
     if (entity[1] === 1 && policyData.version === 1) {   // entity[1] === 1 when create new entity and new insuree
 
 
-      const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: entity[0][0].id, version: policyData.version, }, { returning: ['insureeCode'], transaction: t })
+      const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: entity[0][0].id, version: policyData.version, }, { returning: ['insureeCode','version'], transaction: t })
 
       insureeCode = insuree['dataValues'].insureeCode
+      
+        insureeVersion = insuree['dataValues'].version
 
       //create location
       await sequelize.query(
@@ -5530,9 +5185,10 @@ const externalPolicy = async (req, res) => {
       console.log(`----------- insert new Insurees --------------`);
     } else if (entity[1] === 1 && policyData.version !== checkEntity[0].version) { // entity[1] === 1 when create new entity and old insuree
       //select insuree
-      const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: checkEntity[0].id, version: policyData.version, }, { returning: ['insureeCode'], transaction: t })
+      const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: checkEntity[0].id, version: policyData.version, }, { returning: ['insureeCode','version'], transaction: t })
 
       insureeCode = insuree['dataValues'].insureeCode
+        insureeVersion = insuree['dataValues'].version
 
       //create location
       await sequelize.query(
@@ -5803,7 +5459,7 @@ const externalPolicy = async (req, res) => {
 
     //insert policy
     await sequelize.query(
-      ` insert into static_data."Policies" ("policyNo", "endorseNo", "issueDate", "applicationNo","insureeCode","insurerCode",
+      ` insert into static_data."Policies" ("policyNo", "endorseNo", "issueDate", "applicationNo","insureeCode", "insureeVersion", "insurerCode",
         "agentCode","agentCode2","insureID",
         "actDate", "actTime", "expDate", "expTime", "policyDate", "policyTime", grossprem, duty, tax, totalprem, 
         commin_rate, commin_amt, ovin_rate, ovin_amt, commin_taxamt, ovin_taxamt, commout_rate, commout_amt, ovout_rate, ovout_amt,
@@ -5812,7 +5468,7 @@ const externalPolicy = async (req, res) => {
         commout1_rate, commout1_amt, ovout1_rate, ovout1_amt, commout2_rate, commout2_amt, ovout2_rate, ovout2_amt, netgrossprem, specdiscrate, specdiscamt, cover_amt, withheld,
         duedateinsurer, duedateagent, endorseseries, "fleetCode", "fleetflag", "invoiceNo", "taxInvoiceNo", "lastVersion", "policyType", "source") 
         -- 'values (:policyNo, (select "insureeCode" from static_data."Insurees" where "entityID" = :entityInsuree and lastversion = 'Y'), '+
-        values ( :policyNo, :endorseNo, :issueDate , :applicationNo, :insureeCode, 
+        values ( :policyNo, :endorseNo, :issueDate , :applicationNo, :insureeCode, :insureeVersion ,
         (select "insurerCode" from static_data."Insurers" where "insurerCode" = :insurerCode and lastversion = 'Y' ), 
         :agentCode, :agentCode2, (select "id" from static_data."InsureTypes" where "class" = :class and  "subClass" = :subClass ), 
         :actDate, :actTime, :expDate, :expTime, :policyDate, :policyTime, :grossprem, :duty, :tax, :totalprem, 
@@ -5839,6 +5495,7 @@ const externalPolicy = async (req, res) => {
           seqNoagt: policyData.seqNoagt,
           // entityInsuree:
           insureeCode: insureeCode,
+          insureeVersion : insureeVersion,
           insurerCode: policyData.insurerCode,
           class: policyData.class,
           subClass: policyData.subClass,
@@ -5994,14 +5651,12 @@ module.exports = {
   findPolicy,
   getPolicyList,
   upsertEntityInsuree,
-  newPolicyList,   //create policy status A from excel and add ARAP
+  // Deprecated  newPolicyList,   create policy status A from excel and add ARAP
   draftPolicyMinor, //create policy status I from excel
   editPolicyList, // change status I ->A and add ARAP
   editPolicyMinor, // change status I ->A and add ARAP งานรายย่อย
   externalPolicy,
-  // postCar,
-  // removeCar,
-  // editCar,
+  
   getPolicyListChangestatus,
   createjupgrMinor, // for endorse
   createTransectionMinor,  // for endorse
