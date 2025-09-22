@@ -80,8 +80,10 @@ module.exports = (sequelize, DataTypes) => {
     fleetCode : DataTypes.STRING,
     fleetflag : DataTypes.STRING,
 
-    
+    xlock :  DataTypes.STRING,
     source : DataTypes.STRING,
+    
+    insureeVersion : DataTypes.INTEGER,
     previouspolicy : DataTypes.STRING,
 
 

@@ -4,6 +4,7 @@ const ctrl = require("../controllers");
 
 // router.get("path", fucntion);
 router.post('/insuretypenew', ctrl.insures.newInsureType);
+
 router.post('/editinsuretype', ctrl.insures.editInsureType);
 
 router.get('/insuretypeall', ctrl.insures.getInsureTypeAll);
@@ -24,6 +25,10 @@ router.post('/getcommovout/all', ctrl.insures.getCommOVOutAll);
 router.post('/editcommovout/all', ctrl.insures.editCommOVOutAll);
 
 router.post('/getinsurebyclass', ctrl.insures.getInsureByClass);
+
+// for bulk excel
+router.post('/insuretypenew/bulk', ctrl.insures.newInsureTypeBulk);
+router.post('/commovnew/bulk', ctrl.insures.newCommOVBulk);
 
 // router.post('/', ctrl.cars.postCar);
 // router.delete('/:index', ctrl.cars.removeCar);

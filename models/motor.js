@@ -29,6 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     cc : DataTypes.INTEGER,
     seat : DataTypes.INTEGER,
     gvw :  DataTypes.INTEGER,
+    addition_access : DataTypes.STRING,
 
   }, {
     sequelize,

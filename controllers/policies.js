@@ -34,6 +34,7 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, pr
   host: process.env.DB_HOST,
   dialect: process.env.DB_DIALECT,
   port: process.env.DB_PORT,
+logging: false,
   dialectOptions: {
     ssl: {
       require: true,
@@ -864,15 +865,16 @@ const draftPolicyMinor = async (req, res) => {
      checkEntity = upsert.checkEntity
      entityType = upsert.entityType
         
-
+      console.log(">>>> entity insuree");
       console.log(JSON.stringify(entity));
       let insureeCode
       let insureeVersion
       if (entity[1] === 1) {   // entity[1] === 1 when create new entity
 
         if(entityType === 'update'){
-          
-          const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: checkEntity[0].insureeCode, version: req.body[i].int_version+1, }, { returning: ['insureeCode','version'], transaction: t })
+          console.log('>>> case entity update ');
+          console.log(JSON.stringify({ entityID: entity[0][0].id, insureeCode: checkEntity[0].insureeCode, version: checkEntity[0].ins_version+1, }))
+          const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: checkEntity[0].insureeCode, version: checkEntity[0].ins_version+1, }, { returning: ['insureeCode','version'], transaction: t })
           console.log('>>> update insuree obj ');
           console.log(JSON.stringify(insuree));
           insureeCode = insuree['dataValues'].insureeCode
@@ -890,6 +892,8 @@ const draftPolicyMinor = async (req, res) => {
               })
         }else if(entityType === 'new') {
 
+          console.log('>>> case entity new ');
+          console.log(JSON.stringify({ entityID: entity[0][0].id, insureeCode:  entity[0][0].id, version: req.body[i].version, }))
           const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode:  entity[0][0].id, version: req.body[i].version, }, { returning: ['insureeCode', 'version'], transaction: t })
           console.log('>>> new insuree obj ');
           console.log(JSON.stringify(insuree));
@@ -1154,7 +1158,7 @@ const draftPolicyMinor = async (req, res) => {
         commout1_taxamt, ovout1_taxamt, commout2_taxamt, ovout2_taxamt, commout_taxamt, ovout_taxamt,
         createusercode, "itemList","insurancestatus" ,
         commout1_rate, commout1_amt, ovout1_rate, ovout1_amt, commout2_rate, commout2_amt, ovout2_rate, ovout2_amt, netgrossprem, specdiscrate, specdiscamt, cover_amt, withheld,
-        duedateinsurer, duedateagent, endorseseries) 
+        duedateinsurer, duedateagent, endorseseries, source, previouspolicy) 
         -- 'values (:policyNo, (select "insureeCode" from static_data."Insurees" where "entityID" = :entityInsuree and lastversion = 'Y'), '+
         values ( :applicationNo, :insureeCode, :insureeVersion,
         (select "insurerCode" from static_data."Insurers" where "insurerCode" = :insurerCode and lastversion = 'Y' ), 
@@ -1164,7 +1168,7 @@ const draftPolicyMinor = async (req, res) => {
         :commout1_taxamt, :ovout1_taxamt, :commout2_taxamt, :ovout2_taxamt, :commout_taxamt, :ovout_taxamt,
         :createusercode, :itemList ,:insurancestatus,
         :commout1_rate, :commout1_amt, :ovout1_rate, :ovout1_amt,  :commout2_rate, :commout2_amt, :ovout2_rate, :ovout2_amt, :netgrossprem,  :specdiscrate, :specdiscamt, :cover_amt, :withheld,
-        :dueDateInsurer, :dueDateAgent ,:endorseseries)`
+        :dueDateInsurer, :dueDateAgent ,:endorseseries, :source, :previouspolicy)`
         ,
         {
           replacements: {
@@ -1222,6 +1226,9 @@ const draftPolicyMinor = async (req, res) => {
             ovout2_taxamt: req.body[i][`ovout2_taxamt`],
             commout_taxamt: req.body[i][`commout_taxamt`],
             ovout_taxamt: req.body[i][`ovout_taxamt`],
+            
+          source : req.body[i].source,
+          previouspolicy : req.body[i].previouspolicy,
 
 
           },
@@ -1235,15 +1242,16 @@ const draftPolicyMinor = async (req, res) => {
       await t.commit();
       appNo.push(req.body[i].applicationNo)
     } catch (error) {
+      console.log(`----------- Error draftPolicMinor()  ----------------`);
       console.error(error)
       await t.rollback();
-      await res.status(500).json({ status: 'error', describe: error, appNo: appNo });
+      await res.status(500).json({ status: 'error', message: error.message, appNo: appNo });
       return "fail"
 
     }
 
   }
-
+console.log(`----------- End draftPolicMinor()  ----------------`);
   await res.json({ status: 'success', appNo: appNo })
 
 
@@ -1253,10 +1261,11 @@ const upsertEntityInsuree = async (data ,t) =>{
   let checkEntity
   let entityType = 'new'
   try {
-    
+    console.log('------ start upsertEntityInsuree ---------');
  
+    console.log(">>>> personType : " +data.personType);
    if (data.personType === 'P') {
-
+      
         checkEntity = await sequelize.query(
           `select e.*, i."insureeCode",i.version as ins_version, i.id as ins_id from static_data."Entities"  e
           join static_data."Insurees" i on e.id = i."entityID"  
@@ -1269,6 +1278,7 @@ const upsertEntityInsuree = async (data ,t) =>{
             transaction: t,
             type: QueryTypes.SELECT
           })
+
         if (checkEntity.length > 0) {
           if (checkEntity[0].titleID === data.titleID && checkEntity[0].t_firstName === data.t_firstName && checkEntity[0].t_lastName === data.t_lastName) {
             data.version = checkEntity[0].version
@@ -1278,13 +1288,18 @@ const upsertEntityInsuree = async (data ,t) =>{
             entityType = 'update'
            
           }
+          console.log(">>>> insuree version  : " +checkEntity[0].ins_version );
         }
-
-
-        entity = await sequelize.query(
+ console.log(">>>> entityType : " +entityType);
+ console.log(">>>> entity version  : " +data.version);
+ if (entityType === 'old') {
+  entity = [[{id:checkEntity[0].id}],0]
+ }else{
+entity = await sequelize.query(
           `insert into static_data."Entities" ("personType","titleID","t_firstName","t_lastName","idCardType","idCardNo", email , version) 
             values (:personType, :titleID, :t_firstName, :t_lastName, :idCardType, :idCardNo, :email, :version ) 
-            ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING  RETURNING "id" `,
+          --  ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING  
+          RETURNING "id" `,
           {
             replacements: {
               personType: data.personType,
@@ -1301,6 +1316,9 @@ const upsertEntityInsuree = async (data ,t) =>{
             type: QueryTypes.INSERT
           }
         )
+ }
+
+        
 
 
 
@@ -1309,7 +1327,8 @@ const upsertEntityInsuree = async (data ,t) =>{
         entity = await sequelize.query(
           `insert into static_data."Entities" ("personType","titleID","t_ogName","taxNo",email, branch, "t_branchName","vatRegis") 
         values (:personType, :titleID, :t_ogName,:taxNo,:email, :branch, :t_branchName, true) 
-        ON CONFLICT ON CONSTRAINT "taxNo" DO NOTHING  RETURNING "id" `,
+      --  ON CONFLICT ON CONSTRAINT "taxNo" DO NOTHING  
+      RETURNING "id" `,
           {
             replacements: {
               personType: data.personType,
@@ -1325,12 +1344,12 @@ const upsertEntityInsuree = async (data ,t) =>{
           }
         )
       }
-
+console.log(`----------- end upsertEntityInsuree()  ----------------`);
       return { entity : entity, checkEntity: checkEntity ,entityType : entityType }
        } catch (error) {
-    
-    console.error(error)
-    throw new Error(error)
+    console.log(`----------- ERROR upsertEntityInsuree()  ----------------`);
+      console.error(error.message)
+      throw new Error(error.message)
   }
 
 
@@ -1410,7 +1429,8 @@ console.log('step check duplicate entity if idcard type = "บัตรประ
         entity = await sequelize.query(
           `insert into static_data."Entities" ("personType","titleID","t_firstName","t_lastName","idCardType","idCardNo", email , version) 
             values (:personType, (select "TITLEID" from static_data."Titles" where  "TITLETHAIBEGIN" = :title limit 1), :t_firstName, :t_lastName, :idCardType, :idCardNo, :email, :version ) 
-            ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING  RETURNING "id" `,
+          --  ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING 
+           RETURNING "id" `,
           {
             replacements: {
               personType: policyData[i].personType,
@@ -1435,7 +1455,8 @@ console.log('step check duplicate entity if idcard type = "บัตรประ
         entity = await sequelize.query(
           `insert into static_data."Entities" ("personType","titleID","t_ogName","taxNo",email, branch, "t_branchName","vatRegis") 
         values (:personType, (select "TITLEID" from static_data."Titles" where  "TITLETHAIBEGIN" = :title limit 1), :t_ogName,:taxNo,:email, :branch, :t_branchName, true) 
-        ON CONFLICT ON CONSTRAINT "taxNo" DO NOTHING  RETURNING "id" `,
+      --  ON CONFLICT ON CONSTRAINT "taxNo" DO NOTHING 
+       RETURNING "id" `,
           {
             replacements: {
               personType: policyData[i].personType,
@@ -2844,6 +2865,11 @@ const createTransectionMinor = async (policy, t) => {
       type: QueryTypes.SELECT
     }
   )
+   if(agent[0].amityflag === 'Y'){
+    policy.disctype = 'DISC-AMITY'
+   }else{
+     policy.disctype = 'DISC-OUT'
+   }
   if (!policy.insureID) {
     const insureType = await sequelize.query(
       `select "id" from static_data."InsureTypes" where "class" = :class and  "subClass" = :subClass) 
@@ -4235,7 +4261,8 @@ const editApplication = async (req, res) => {
          branch = :branch,
         "t_branchName" = :t_branchName
         where id = :entityID
-      -- ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING  RETURNING "id" `,
+      -- ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING 
+      RETURNING "id" `,
         {
           replacements: {
             personType: req.body[i].personType,
@@ -4256,6 +4283,7 @@ const editApplication = async (req, res) => {
           type: QueryTypes.UPDATE
         }
       )
+console.log(">>>> update entity");
 
 
       //update location
@@ -4293,6 +4321,7 @@ const editApplication = async (req, res) => {
           type: QueryTypes.UPDATE
         }
       )
+      console.log(">>>> update location");
       //insert new car or select
       let cars = [{ id: null }]
 
@@ -4332,6 +4361,7 @@ const editApplication = async (req, res) => {
        
 
         if (req.params.type === 'fleet') {
+          console.log(">>>> update motor fleet");
             for (let j = 0; j < req.body[i].motorData.length; j++) {
               const motorData = req.body[i].motorData[j]
               //update motor
@@ -4410,7 +4440,7 @@ const editApplication = async (req, res) => {
           
   
         }else if(req.params.type === 'minor') {
-
+console.log(">>>> update motor");
            //update motor
         cars = await sequelize.query(
           `update static_data."Motors" set 
@@ -4508,7 +4538,8 @@ const editApplication = async (req, res) => {
       commout2_rate = :commout2_rate, commout2_amt = :commout2_amt, ovout2_rate = :ovout2_rate, ovout2_amt = :ovout2_amt, 
       netgrossprem = :netgrossprem, specdiscamt = :specdiscamt, cover_amt = :cover_amt, withheld = :withheld,
       duedateinsurer = :dueDateInsurer, duedateagent = :dueDateAgent,
-      "fleetCode" = :fleetCode
+      "fleetCode" = :fleetCode,
+      source = :source
       where "applicationNo" = :applicationNo `
         ,
         {
@@ -4566,28 +4597,31 @@ const editApplication = async (req, res) => {
             ovout2_taxamt: req.body[i][`ovout2_taxamt`],
             commout_taxamt: req.body[i][`commout_taxamt`],
             ovout_taxamt: req.body[i][`ovout_taxamt`],
-
+            source : req.body[i][`source`],
 
           },
           transaction: t,
           type: QueryTypes.INSERT
         }
       )
-
+      console.log(">>>> update policy");
+      
 
 
       await t.commit();
       appNo.push(req.body[i].applicationNo)
     } catch (error) {
+      
+      console.log(`----------- Error editApplication()  ----------------`);
       console.error(error)
       await t.rollback();
-      await res.status(500).json({ status: 'error', describe: error, appNo: appNo });
+      await res.status(500).json({ status: 'error', message: error.message, appNo: appNo });
       return "fail"
 
     }
 
   }
-
+console.log(`----------- End editApplication()  ----------------`);
   await res.json({ status: 'success', appNo: appNo })
 
 
@@ -4623,7 +4657,8 @@ const editPolicyDetail = async (req, res) => {
          branch = :branch,
         "t_branchName" = :t_branchName
         where id = :entityID
-      -- ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING  RETURNING "id" `,
+      -- ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING 
+       RETURNING "id" `,
         {
           replacements: {
             personType: data.personType,
@@ -5074,7 +5109,8 @@ const externalPolicy = async (req, res) => {
           entity = await sequelize.query(
             `insert into static_data."Entities" ("personType","titleID","t_firstName","t_lastName","idCardType","idCardNo", email , version) 
             values (:personType, :titleID, :t_firstName, :t_lastName, :idCardType, :idCardNo, :email, :version ) 
-            ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING  RETURNING "id" `,
+          --  ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING 
+           RETURNING "id" `,
             {
               replacements: {
                 personType: policyData.personType,
@@ -5098,7 +5134,8 @@ const externalPolicy = async (req, res) => {
       entity = await sequelize.query(
         `insert into static_data."Entities" ("personType","titleID","t_ogName","taxNo",email, branch, "t_branchName","vatRegis") 
         values (:personType, :titleID , :t_ogName, :taxNo, :email, :branch, :t_branchName, :vatRegis) 
-        ON CONFLICT ON CONSTRAINT "taxNo" DO NOTHING  RETURNING "id" `,
+      --  ON CONFLICT ON CONSTRAINT "taxNo" DO NOTHING 
+       RETURNING "id" `,
         {
           replacements: {
             personType: policyData.personType,
@@ -5120,7 +5157,8 @@ const externalPolicy = async (req, res) => {
       entity = await sequelize.query(
         `insert into static_data."Entities" ("personType","titleID","t_firstName","t_lastName","idCardType","idCardNo", email , version) 
         values (:personType, :titleID, :t_firstName, :t_lastName, :idCardType, :idCardNo, :email, :version ) 
-        ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING  RETURNING "id" `,
+      --  ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING 
+       RETURNING "id" `,
         {
           replacements: {
             personType: policyData.personType,

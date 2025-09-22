@@ -6,6 +6,7 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, pr
   host: process.env.DB_HOST,
   dialect: process.env.DB_DIALECT,
   port: process.env.DB_PORT,
+  logging: false,
   dialectOptions: {
     ssl: {
       require: true,
@@ -97,9 +98,9 @@ const findBanksByType = async (req, res) => {
         type: QueryTypes.SELECT
     })
         .then(result => {
-            if (result.length === 0) {
-                return res.status(404).json({ message: "No records found" });
-            }
+            // if (result.length === 0) {
+            //     return res.status(404).json({ message: "No records found" });
+            // }
             console.log("Records by type fetched successfully");
             res.status(200).json(result);
         })
@@ -116,9 +117,9 @@ const findBankAmity = async (req, res) => {
         type: QueryTypes.SELECT
     })
         .then(result => {
-            if (result.length === 0) {
-                return res.status(404).json({ message: "No records found" });
-            }
+            // if (result.length === 0) {
+            //     return res.status(404).json({ message: "No records found" });
+            // }
             console.log("All records fetched successfully");
             res.status(200).json(result);
         })
@@ -135,9 +136,9 @@ const findBankAmityBrand = async (req, res) => {
         type: QueryTypes.SELECT
     })
         .then(result => {
-            if (result.length === 0) {
-                return res.status(404).json({ message: "No records found" });
-            }
+            // if (result.length === 0) {
+            //     return res.status(404).json({ message: "No records found" });
+            // }
             console.log("All records fetched successfully");
             res.status(200).json(result);
         })
@@ -156,9 +157,9 @@ const findBankAmityBranch = async (req, res) => {
         type: QueryTypes.SELECT
     })
         .then(result => {
-            if (result.length === 0) {
-                return res.status(404).json({ message: "No records found" });
-            }
+            // if (result.length === 0) {
+            //     return res.status(404).json({ message: "No records found" });
+            // }
             console.log("All records fetched successfully");
             res.status(200).json(result);
         })
@@ -178,9 +179,9 @@ const findBankAmityNo = async (req, res) => {
         type: QueryTypes.SELECT
     })
         .then(result => {
-            if (result.length === 0) {
-                return res.status(404).json({ message: "No records found" });
-            }
+            // if (result.length === 0) {
+            //     return res.status(404).json({ message: "No records found" });
+            // }
             console.log("All records fetched successfully");
             res.status(200).json(result);
         })
@@ -200,9 +201,9 @@ const findBankPartnerBrand = async (req, res) => {
         type: QueryTypes.SELECT
     })
         .then(result => {
-            if (result.length === 0) {
-                return res.status(404).json({ message: "No records found" });
-            }
+            // if (result.length === 0) {
+            //     return res.status(404).json({ message: "No records found" });
+            // }
             console.log("All records fetched successfully");
             res.status(200).json(result);
         })
@@ -222,9 +223,9 @@ const findBankPartnerBranch = async (req, res) => {
         type: QueryTypes.SELECT
     })
         .then(result => {
-            if (result.length === 0) {
-                return res.status(404).json({ message: "No records found" });
-            }
+            // if (result.length === 0) {
+            //     return res.status(404).json({ message: "No records found" });
+            // }
             console.log("All records fetched successfully");
             res.status(200).json(result);
         })
@@ -245,9 +246,9 @@ const findBankPartneryNo = async (req, res) => {
         type: QueryTypes.SELECT
     })
         .then(result => {
-            if (result.length === 0) {
-                return res.status(404).json({ message: "No records found" });
-            }
+            // if (result.length === 0) {
+            //     return res.status(404).json({ message: "No records found" });
+            // }
             console.log("All records fetched successfully");
             res.status(200).json(result);
         })

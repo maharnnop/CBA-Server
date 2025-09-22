@@ -32,27 +32,71 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, pr
 });
 
 
-const showAll = (req, res) => {
-  User.findAll({
-    // where:{
-    //     FLAGDELETE:'N'
-    // }
-  }).then((users) => {
-    res.json(users);
-  }).catch((err) =>
-    res.send(err)
-  )
+
+
+const usergetall = async (req, res) =>{
+  try {
+   
+    const records = await sequelize.query(
+      `select u.id, "userName" as username , u.activeflag, a.role_desp  as rolename from static_data."Users" u 
+join static_data.authorized a on a.role_name = u."role" 
+;`,
+      {
+        replacements:{
+          // username :usercode
+        },
+        type: QueryTypes.SELECT
+      }
+    )
+    res.json(records)
+  } catch (error) {
+
+    console.error(error.message)
+    await res.status(500).json({ message: error.message });
+  }  
 }
 
-const showByUsername = (req, res) => {
-  User.findOne({
+const getroleall = async (req, res) =>{
+  try {
+   
+    const records = await sequelize.query(
+      `select role_name ,role_desp  from  static_data.authorized a ;`,
+      {
+        replacements:{
+          // username :usercode
+        },
+        type: QueryTypes.SELECT
+      }
+    )
+    res.json(records)
+  } catch (error) {
 
-    where: {
-      userName: req.body.userName
-    }
-  }).then((user) => {
-    res.json(user);
-  });
+    console.error(error.message)
+    await res.status(500).json({ message: error.message });
+  }  
+}
+
+const showByUsername = async (req, res) => {
+  try {
+   
+    const records = await sequelize.query(
+      `select u.id, "userName"  , u.role from static_data."Users" u 
+join static_data.authorized a on a.role_name = u."role" 
+where u.id = :userid
+;`,
+      {
+        replacements:{
+          userid : req.body.userid
+        },
+        type: QueryTypes.SELECT
+      }
+    )
+    res.json(records)
+  } catch (error) {
+
+    console.error(error.message)
+    await res.status(500).json({ message: error.message });
+  }  
 };
 
 const signup = (req, res) => {
@@ -290,7 +334,7 @@ const signupKC = async (req, rsponse) => {
     rsponse.status(200).json({ msg: "Register Success" })
 
   } catch (error) {
-    console.error(error);
+    console.error(JSON.stringify(error));
     await t.rollback();
     if (error.error_msg) {
       await rsponse.status(error.status).json(error.error_msg);
@@ -759,7 +803,8 @@ where  u."role" IN (SELECT unnest(get_subordinates( :username )));`,
 }
 
 module.exports = {
-  showAll,
+  usergetall,
+  getroleall,
   showByUsername,
   signup,
   login,

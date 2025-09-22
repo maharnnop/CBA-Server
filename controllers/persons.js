@@ -8,6 +8,7 @@ const AgentGroup = require("../models").AgentGroup;
 const CommOVIn = require("../models").CommOVIn;
 const CommOVOut = require("../models").CommOVOut;
 const process = require('process');
+const excelJS = require("exceljs");
 require('dotenv').config();
 
 const { Op, QueryTypes, Sequelize } = require("sequelize");
@@ -95,6 +96,88 @@ console.log("+++++ [method] : newInsurer ++++++");
     await res.status(500).json(error);
   }
 };
+//use create Insurer by CSV file dump
+const newInsurerBulk = async (req, res) => {
+  
+  let resultx = {success : [], error : []}
+  try{
+      for (let i = 0; i < req.body.length; i++) {
+        const ele =   req.body[i]
+        const t = await sequelize.transaction();
+    try {
+        console.log("+++++ [method] : newInsurerBulk ++++++");
+        const entity = await Entity.create(ele.entity, { transaction: t }) //entity agent
+        ele.insurer.entityID = entity.id
+        ele.location.entityID = entity.id
+        
+      console.log(`>>> gen entity id : ${entity.id} finished`);
+        if (ele.location.provinceID != null ) {
+          const location = await Location.create(ele.location, { transaction: t }) // location agent
+          console.log(`>>> gen location id : ${location.id}  finished`);
+        }
+        
+        // contact person when agent is organization
+        if (ele.entity.personType === 'O') { 
+        const contact = await Entity.create(ele.contactPerson.entity, { transaction: t }) //entity contact person
+        ele.insurer.contactPersonID = contact.id
+        ele.contactPerson.location.entityID = contact.id
+        const locationContact = await Location.create(ele.contactPerson.location, { transaction: t }) // location contact person
+        
+        console.log(`>>> gen contact id : ${contact.id}, locationContact id : ${locationContact.id} finished`);
+      } 
+     
+        const insurer = await Insurer.create(ele.insurer, { transaction: t })
+        
+
+        console.log(`+++++ [finished] created agent : ${ele.insurer.insurerCode} success!!`);
+        await t.commit();
+        resultx.success.push({insurerCode : ele.insurer.insurerCode})
+          } 
+          catch (error) {
+            console.log(ele.insurer.insurerCode);
+            resultx.error.push({insurerCode : ele.insurer.insurerCode , desp :error.message})
+            await t.rollback();
+            
+            
+  }
+
+    };
+
+    const workbook = new excelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Sheet1");
+      if (!worksheet) {
+        
+        throw new Error('Worksheet not found');
+      }
+      let row = 3;
+      worksheet.getCell(row ,1).value = "InsurerCode";
+        worksheet.getCell(row ,2).value = "Error describe";
+      resultx.error.forEach(ele => {
+        row = row  +1
+        worksheet.getCell(row ,1).value = ele.insurerCode;
+        worksheet.getCell(row ,2).value = ele.desp;
+     });
+     
+    
+      const excelBuffer = await workbook.xlsx.writeBuffer();
+    
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", "attachment; filename=modified_invoice.xlsx");
+      
+       
+        await res.send(excelBuffer);
+} catch (err) {
+    console.error(err);
+    res.status(500).send({
+      status: "error",
+      message: err.message,
+    });
+  }
+  
+
+};
+
+
 //#region use update insurer old
 // const updateInsurer = async (req, res) => {
 //   const t = await sequelize.transaction();
@@ -276,10 +359,91 @@ const newAgent = async (req, res) => {
       msg: `created agent : ${req.body.agent.agentCode} success!!`,
     });
   } catch (error) {
-    console.error(error)
+    console.error(error.message)
     await t.rollback();
-    await res.status(500).json(error);
+    await res.status(500).json({message : error.message});
   }
+};
+
+//use create agent by CSV file dump
+const newAgentBulk = async (req, res) => {
+  
+  let resultx = {success : [], error : []}
+  try{
+      for (let i = 0; i < req.body.length; i++) {
+        const ele =   req.body[i]
+        const t = await sequelize.transaction();
+    try {
+        console.log("+++++ [method] : newAgentBulk ++++++");
+        const entity = await Entity.create(ele.entity, { transaction: t }) //entity agent
+        ele.agent.entityID = entity.id
+        ele.location.entityID = entity.id
+        
+      console.log(`>>> gen entity id : ${entity.id} finished`);
+        if (ele.location.provinceID != null ) {
+          const location = await Location.create(ele.location, { transaction: t }) // location agent
+          console.log(`>>> gen location id : ${location.id}  finished`);
+        }
+        
+        // contact person when agent is organization
+        if (ele.entity.personType === 'O') { 
+        const contact = await Entity.create(ele.contactPerson.entity, { transaction: t }) //entity contact person
+        ele.agent.contactPersonID = contact.id
+        ele.contactPerson.location.entityID = contact.id
+        const locationContact = await Location.create(ele.contactPerson.location, { transaction: t }) // location contact person
+        
+        console.log(`>>> gen contact id : ${contact.id}, locationContact id : ${locationContact.id} finished`);
+      } 
+     
+        const agent = await Agent.create(ele.agent, { transaction: t })
+        
+
+        console.log(`+++++ [finished] created agent : ${ele.agent.agentCode} success!!`);
+        await t.commit();
+        resultx.success.push({agentCode : ele.agent.agentCode})
+          } 
+          catch (error) {
+            console.log(ele.agent.agentCode);
+            resultx.error.push({agentCode : ele.agent.agentCode , desp :error.message})
+            await t.rollback();
+            
+            
+  }
+
+    };
+
+    const workbook = new excelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Sheet1");
+      if (!worksheet) {
+        
+        throw new Error('Worksheet not found');
+      }
+      let row = 3;
+      worksheet.getCell(row ,1).value = "AgentCode";
+        worksheet.getCell(row ,2).value = "Error describe";
+      resultx.error.forEach(ele => {
+        row = row  +1
+        worksheet.getCell(row ,1).value = ele.agentCode;
+        worksheet.getCell(row ,2).value = ele.desp;
+     });
+     
+    
+      const excelBuffer = await workbook.xlsx.writeBuffer();
+    
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", "attachment; filename=modified_invoice.xlsx");
+      
+       
+        await res.send(excelBuffer);
+} catch (err) {
+    console.error(err);
+    res.status(500).send({
+      status: "error",
+      message: err.message,
+    });
+  }
+  
+
 };
 
 //use update agent
@@ -630,9 +794,11 @@ module.exports = {
   getUserByid,
   
   newInsurer,
+  newInsurerBulk,
   updateInsurer,
   getInsurerAll,
   newAgent,
+  newAgentBulk,
   updateAgent,
   getAgentAll,
   findAgent,

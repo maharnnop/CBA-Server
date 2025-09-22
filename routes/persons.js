@@ -10,9 +10,12 @@ router.get('/userget/:id', ctrl.persons.getUserByid);
 
 //current use
 router.post('/insurernew', ctrl.persons.newInsurer);
+router.post('/insurernew/bulk', ctrl.persons.newInsurerBulk);
+
 router.post('/insurerupdate', ctrl.persons.updateInsurer);
 router.get('/insurerall', ctrl.persons.getInsurerAll);
 router.post('/agentnew', ctrl.persons.newAgent);
+router.post('/agentnew/bulk', ctrl.persons.newAgentBulk);
 router.post('/agentupdate', ctrl.persons.updateAgent);
 router.get('/agentall', ctrl.persons.getAgentAll);
 router.post('/findagent', ctrl.persons.findAgent);

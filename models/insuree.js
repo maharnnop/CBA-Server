@@ -21,7 +21,9 @@ module.exports = (sequelize, DataTypes) => {
     // ระดับความเสี่ยง สูง กลาง ต่ำ
     blackList:  DataTypes.CHAR,
     blacklistDesp: DataTypes.STRING,
-    note:  DataTypes.STRING,
+    lastversion: DataTypes.STRING,
+    version:  DataTypes.INTEGER,
+    
   }, {
     sequelize,
     modelName: 'Insuree',

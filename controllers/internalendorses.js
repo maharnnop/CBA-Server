@@ -15,7 +15,8 @@ const { decode } = require('jsonwebtoken');
 // const Package = require("../models").Package;
 // const User = require("../models").User;
 const { Op, QueryTypes, Sequelize } = require("sequelize");
-const { newPolicy, createjupgrMinor ,createTransectionMinor} = require("./policies");
+const { newPolicy, createjupgrMinor ,createTransectionMinor, upsertEntityInsuree} = require("./policies");
+
 const { log } = require("winston");
 const { inflate } = require("zlib");
 //handle index request
@@ -34,6 +35,7 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USERNAME, pr
   host: process.env.DB_HOST,
   dialect: process.env.DB_DIALECT,
   port: process.env.DB_PORT,
+logging: false,
   dialectOptions: {
     ssl: {
       require: true,
@@ -77,7 +79,8 @@ let seq = 1;
 //#region
 //find policydata ในหน้า แก้ไขกรมธรรม+ใบคำขอ (policyScreen)
 const findPolicy = async (req, res) => {
-  let cond = ``
+   try {
+    let cond = ``
 
   if (req.body.policyNo !== null && req.body.policyNo !== '') {
     cond = `${cond} and pol."policyNo" = '${req.body.policyNo}'`
@@ -86,13 +89,14 @@ const findPolicy = async (req, res) => {
     cond = `${cond} and pol."applicationNo" = '${req.body.applicationNo}'`
   }
   const records = await sequelize.query(
-    `select pol."createdAt" as "polcreatedAt" , polpol.xlock, pol.id as polid ,pol.*, ent.*, lo.*, inst.*, mt.*,
+    `select pol."createdAt" as "polcreatedAt" , pol.xlock, pol.id as polid ,pol.*, ent.*, lo.*, inst.*, mt.*,
     edt.edtypecode as edtype, (ine.version + 1 )as "InsureeVersion",
     (case when (select count(*) from static_data.b_juepms where polid = pol.id) > 0 then 'Y' else 'N' end) as edprem,
     (case when pol."fleetflag" = 'Y' then 'fleet' else 'minor' end) as "insuranceType" , 
     pol."policyNo", pol."applicationNo", pol."insurerCode",pol."agentCode",
     lo.id as "locationid",
      inst.class || '/' || inst."subClass" as classsubclass,
+     (select amityflag  from static_data."Agents" a  where a."agentCode" = pol."agentCode"  and a.lastversion ='Y' ) as amityflag,
      (select t_provincename from static_data."provinces" where provinceid = lo."provinceID" limit 1) as province,
      (select t_amphurname from static_data."Amphurs" where amphurid = lo."districtID" limit 1) as district,
      (select t_tambonname from static_data."Tambons" where tambonid = lo."subDistrictID" limit 1) as subdistrict,
@@ -118,7 +122,12 @@ const findPolicy = async (req, res) => {
       type: QueryTypes.SELECT
     }
   )
-  res.json(records)
+  await res.json(records)
+    } catch (error) {
+
+    console.error(error.message)
+    await res.status(500).json({ message: error.message });
+  }
 };
 
 const getEdTypeCodeAll = (req, res) => {
@@ -219,6 +228,7 @@ const requestEdtDisc = async (req, res) => {
         transaction: t,
         type: QueryTypes.SELECT
       })
+         await validateRequestEdt (policy.previousid ,t) //check ว่ามีrequest ค้างไว้ก่อนหน้าไหม
     const oldInstallAdvisor = await sequelize.query(
       `select 	bj.netgrossprem as netgrossprem  ,bj.netgrossprem  as grossprem ,bj.specdiscamt 
 		,bj.withheld  , bj.duty ,bj.tax 
@@ -743,6 +753,8 @@ const getPolicyTransChangeinv = async (req, res) => {
 
 // MT82
 const endorseChangeinv = async (req, res) => {
+  
+    console.log("--------------- start endorseChangeinv -----------------");
   const jwt = req.headers.authorization.split(' ')[1];
   const usercode = decode(jwt).USERNAME;
 
@@ -752,7 +764,7 @@ const endorseChangeinv = async (req, res) => {
   try {
     //update policy status ='C'
     req.body.edtypecode === "MT82"
-
+   await validateRequestEdt (req.body.previousid ,t) //check ว่ามีrequest ค้างไว้ก่อนหน้าไหม
     await sequelize.query(
       `update static_data."Policies" 
              SET "policystatus" = 'ED', "lastVersion" = 'N'
@@ -1115,9 +1127,11 @@ VALUES(:keyidm, :category, null, :value, :old_value, :table, null
 
 
     await t.commit()
+     console.log("--------------- End endorseChangeinv -----------------");
     await res.json({ requestNo: requestNo, endorseNo: endorseNo })
   } catch (error) {
     await t.rollback();
+     console.log("--------------- ERROR endorseChangeinv -----------------");
     console.error(error)
     await res.status(500).json({ message: error.message });
   }
@@ -1219,6 +1233,7 @@ const requestEdtCommOV = async (req, res) => {
         transaction: t,
         type: QueryTypes.SELECT
       })
+     await validateRequestEdt (policy.previousid ,t) //check ว่ามีrequest ค้างไว้ก่อนหน้าไหม
 
     const oldInstallAdvisor = await sequelize.query(
       `select 	bj.netgrossprem as netgrossprem  ,bj.netgrossprem  as grossprem ,bj.specdiscamt 
@@ -1379,7 +1394,7 @@ where bj.request_no = :request_no ;`,
     const endorseNo = `EN-${getCurrentYY()}` + await getRunNo('ends', null, null, 'kw', currentdate, t);
     //gen new app no
     const applicationNo = `APP-${getCurrentYY()}` + await getRunNo('app', null, null, 'kw', currentdate, t);
-    console.log(endorseNo);
+    console.log(">>> endorseNo : " +endorseNo);
 
     // for juepc
 
@@ -1400,7 +1415,7 @@ where bj.request_no = :request_no ;`,
     //insert new policy
     const newPolicy = await Policy.create(policy, { transaction: t })
     console.log(">>> polid : " + newPolicy.id);
-    req.body.polid = newPolicy.id
+    policy.polid = newPolicy.id
    //#region insert juiepc juiedt juiepm
     await sequelize.query(
       `insert into static_data."b_juiepcs" 
@@ -1570,8 +1585,9 @@ and dfrpreferno is null
     )
     // await t.commit()
     // await res.json({ endorseNo: endorseNo })
+     console.log('------ End endorseComov() ---------');
   } catch (error) {
-
+ console.log('------ Error endorseComov() ---------');
     console.error(error)
     throw new Error(error)
   }
@@ -1945,7 +1961,8 @@ VALUES(:keyidm, :category, null, :value, :old_value, :table, :keyid
 
       
     } catch (error) {
-      console.error(error)
+      console.log(`----------- Error requestEdtPolicyDetail()  ----------------`);
+      console.error(error.message)
       await t.rollback();
       await res.status(500).json({ status: 'error', message: error.message, appNo: appNo });
       return "fail"
@@ -1953,7 +1970,7 @@ VALUES(:keyidm, :category, null, :value, :old_value, :table, :keyid
     }
 
 
-console.log(`----------- end editApplication()  ----------------`);
+console.log(`----------- end requestEdtPolicyDetail()  ----------------`);
   await res.json({ status: 'success', appNo: appNo })
 
 
@@ -1964,7 +1981,7 @@ const endorsePolicyDetail = async (t, policy, usercode,premiumflag = true) => {
   const currentdate = getCurrentDate()
   try {
     //update policy status ='C'
-    policy.edtypecode === "MT99"
+    policy.edtypecode == "MT99"
 
      const juiedtds = await sequelize.query(
       `select bj2.* from static_data.b_juiedts bj 
@@ -2025,7 +2042,7 @@ where bj.request_no = :request_no ;`,
     const endorseNo = `EN-${getCurrentYY()}` + await getRunNo('ends', null, null, 'kw', currentdate, t);
     //gen new app no
     const applicationNo = `APP-${getCurrentYY()}` + await getRunNo('app', null, null, 'kw', currentdate, t);
-    console.log(endorseNo);
+    console.log(">>> endorseNo : " +endorseNo);
 
     // for juepc
 
@@ -2042,7 +2059,8 @@ where bj.request_no = :request_no ;`,
     //update endorseseries
 
     policy.endorseseries = parseInt(policy.endorseseries) + 1
-console.log(JSON.stringify(policy));
+    console.log(">>> policy : ");
+    console.log(JSON.stringify(policy));
 
       let entity
       let checkEntity
@@ -2052,54 +2070,82 @@ console.log(JSON.stringify(policy));
       console.log(">>> แก้ไข entity insuree ");
       if(update_entity_insuree != null){
 
-      // await sequelize.query(
-      //         `update static_data."Entities" set
-      //        "personType" = :personType,
-      //        "titleID" = :titleID,
-      //        "t_firstName" = :t_firstName,
-      //        "t_lastName" = :t_lastName,
-      //        "idCardType" = :idCardType,
-      //        "idCardNo" = :idCardNo,
-      //         email = :email,
-      //       -- version = :version,
-      //         "t_ogName" = :t_ogName,
-      //         "taxNo" = :taxNo,
-      //          branch = :branch,
-      //         "t_branchName" = :t_branchName
-      //         where id = :entityID
-      //       -- ON CONFLICT ON CONSTRAINT "idCardNo" DO NOTHING  RETURNING "id" `,
-      //         {
-      //           replacements: {
-      //             personType: policy.personType,
-      //             titleID: policy.titleID,
-      //             t_firstName: policy.t_firstName,
-      //             t_lastName: policy.t_lastName,
-      //             idCardType: policy.idCardType,
-      //             idCardNo: policy.idCardNo,
-      //             // version: policy.version,
-      //             email: policy.email,
-      //             t_ogName: policy.t_ogName,
-      //             taxNo: policy.taxNo,
-      //             branch: policy.branch,
-      //             t_branchName: policy.t_branchName,
-      //             entityID: policy.entityID,
-      //           },
-      //           transaction: t,
-      //           type: QueryTypes.UPDATE
-      //         }
-      //       )
-           // check duplicate entity if idcard type = 'บัตรประชาชน'
      
       policy.version = 1
-      const upsert = upsertEntityInsuree(policy ,t)
+      const upsert = await upsertEntityInsuree(policy ,t)
              console.log(">>> done update entity insuree ");
-      }
-      entity = upsert.entity
+             entity = upsert.entity
      checkEntity = upsert.checkEntity
      entityType = upsert.entityType
      
-        //#region update location insuree
+     if (entity[1] === 1) {   // entity[1] === 1 when create new entity
+          let insureeCode
+          let insureeVersion
+             if(entityType === 'update'){
+               console.log('>>> case entity update ');
+               const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode: checkEntity[0].insureeCode, version: (checkEntity[0].ins_version +1), }, { returning: ['insureeCode','version'], transaction: t })
+               console.log('>>> update insuree obj ');
+               console.log(JSON.stringify(insuree));
+               insureeCode = insuree['dataValues'].insureeCode
+               insureeVersion = insuree['dataValues'].version
+                await sequelize.query(
+                   ` UPDATE static_data."Insurees" 
+                   SET lastversion  ='N'
+                   where  id = :oldid ` ,
+                   {
+                     replacements: {
+                       oldid: checkEntity[0].ins_id,
+                     },
+                     transaction: t,
+                     type: QueryTypes.UPDATE
+                   })
+
+                   
+             }else if(entityType === 'new') {
+     
+               console.log('>>> case entity new ');
+               const insuree = await Insuree.create({ entityID: entity[0][0].id, insureeCode:  entity[0][0].id, version: policy.version, }, { returning: ['insureeCode', 'version'], transaction: t })
+               console.log('>>> new insuree obj ');
+               console.log(JSON.stringify(insuree));
+               insureeCode = insuree['dataValues'].insureeCode
+               insureeVersion  = insuree['dataValues'].version
+             }
+          policy.insureeCode = insureeCode
+          policy.insureeVersion = insureeVersion
+       console.log(`>>>> insureeCode : ${insureeCode} , insureeVersion : ${insureeVersion}`);
+     
+             //create location
+             await sequelize.query(
+     
+               'INSERT INTO static_data."Locations" ("entityID", "t_location_1", "t_location_2", "t_location_3", "t_location_4", "t_location_5", "provinceID", "districtID", "subDistrictID", "zipcode", "telNum_1","locationType") ' +
+               'values(:entityID, :t_location_1, :t_location_2,  :t_location_3, :t_location_4, :t_location_5, ' +
+               '(select "provinceid" from static_data.provinces where t_provincename = :province limit 1), ' +
+               '(select "amphurid" from static_data."Amphurs" where t_amphurname = :district limit 1), ' +
+               '(select "tambonid" from static_data."Tambons" where t_tambonname = :tambon limit 1), ' +
+               ':zipcode, :tel_1, :locationType) ',
+               {
+                 replacements: {
+                   entityID: entity[0][0].id,
+                   t_location_1: policy.t_location_1,
+                   t_location_2: policy.t_location_2,
+                   t_location_3: policy.t_location_3,
+                   t_location_4: policy.t_location_4,
+                   t_location_5: policy.t_location_5,
+                   province: policy.province,
+                   district: policy.district,
+                   tambon: policy.subdistrict,
+                   zipcode: policy.zipcode.toString(),
+                   tel_1: policy.telNum_1,
+                   locationType: 'A'
+                 },
+                 transaction: t,
+                 type: QueryTypes.INSERT
+               }
+             )
+           } else{
+                //#region update location insuree
     if(update_location_insuree != null){
+      console.log(">>> entity id เดิม แต่ update location ");
       await sequelize.query(
       
               `update static_data."Locations" set 
@@ -2137,6 +2183,14 @@ console.log(JSON.stringify(policy));
             console.log(">>> done update location insuree ");
     }
     //#endregion
+            
+           }
+     
+         
+      }
+      
+     
+    
     }
 
     //#endregion
@@ -2398,8 +2452,8 @@ console.log(JSON.stringify(policy));
           await createTransectionMinor(policy, t)
 
   } catch (error) {
-
-    console.error(error)
+ console.log('------ Error endorsePolicyDetail ---------');
+    console.error(error.message)
     throw new Error(error)
   }
 
@@ -5959,7 +6013,7 @@ const createjupgrEndorseInstall = async (policy, installment, usercode, t) => {
 
 //ใ้ชกับสลักหลังภายใน ให้ส่วนลด (MT81) , เปลี่ยนงวดชำระ (MT82) , แก้ไขค่าคอม (MT83)
 const createjupgrChangeinv = async (policy, t, usercode) => {
-  console.log("------------- begin create jupgr changeinv -------------");
+  console.log("------------- start createjupgrChangeinv -------------");
   console.log(">>> dup jupgr changeinv ");
   console.log(`>>> oldpolid : ${policy.previousid}, newpolid : ${policy.polid}, endorseNo : ${policy.endorseNo}, user : ${usercode}`);
   //check wht ของ agent1/agent2
@@ -5967,7 +6021,7 @@ const createjupgrChangeinv = async (policy, t, usercode) => {
   let whtagent2 = wht;
   if (policy.commout1_taxamt == 0) { whtagent1 = 0 }
   if (policy.commout2_taxamt == 0) { whtagent2 = 0 }
-  // cloneข้อมูล jupgr 
+  // cloneข้อมูล jupgr ขา Inserer Clone มาทั้งหมด แต่ขา Agent Clone แค่ที่เคยตัดหนี้ไปแล้ว
   await sequelize.query(
     `DO $$ 
     Begin
@@ -6097,6 +6151,8 @@ const createjupgrChangeinv = async (policy, t, usercode) => {
 
   //ถ้าเป็นสลักหลังแก้ไขค่าคอม clone jupgr เก่ามา แก้ไขupdate commov_amt/taxamt
   if (policy.edtypecode === "MT83") {
+    console.log(">>> MT83 สลักหลังแก้ไขคอม update comm ov ");
+    
     await sequelize.query(
       `DO $$ 
     Begin
@@ -6152,6 +6208,7 @@ const createjupgrChangeinv = async (policy, t, usercode) => {
 
   }//สร้าง ่ jupgr ใหม่ถ้าเป็น เปลี่ยนงงวด (MT82) กับให้ส่วนลด (MT81)
   else {
+    console.log(">>> policy.installment : ");
     console.log(JSON.stringify(policy.installment));
 
     // installment advisor 
@@ -6182,7 +6239,7 @@ const createjupgrChangeinv = async (policy, t, usercode) => {
 
         // }
 
-        console.log('----------- jupgr advisor -------------');
+        console.log('>>>> jupgr advisor ');
         //insert jupgr
         const ads = await sequelize.query(
           `insert into static_data.b_jupgrs ("policyNo", "endorseNo", "dftxno" , "invoiceNo", "taxInvoiceNo", "installmenttype", "seqNo", 
@@ -6271,14 +6328,12 @@ const createjupgrChangeinv = async (policy, t, usercode) => {
           }
         )
         arrAds.push[ads]
-        console.log('pass insert jupgr A' + i + advisor[i].editflag);
+        console.log('>>>> pass insert jupgr A ' + i + advisor[i].editflag);
       }
     }
   }
 
-
-  console.log("OK")
-
+console.log("------------- End createjupgrChangeinv() -------------");
   return { insurer: arrIns, advisor: arrAds }
 
 }
@@ -6462,6 +6517,29 @@ where bj.request_no = :request_no order by bj.category;`,
     await res.status(500).json({ message: error.message });
   }
 };
+const validateRequestEdt = async (polid , t) =>{
+  console.log('------ start validateRequestEdt ---------');
+  try {
+    const records = await sequelize.query(
+      `select * from static_data.b_juiedts bj 
+        where status = 'N' and previousid = :polid`,
+      {
+        replacements: {
+          polid : polid,
+        },
+        type: QueryTypes.SELECT,
+        transaction: t
+      }
+    )
+    if (records.length >0) {
+      throw new Error('มีขออนุมัติแก้ไขกรมธรรม์นี้อยู่ในระบบ')
+    }
+    console.log('------ End validateRequestEdt ---------');
+  } catch (error) {
+console.log('------ ERROR validateRequestEdt ---------');
+     throw error
+  }
+}
 const rejectRequest = async (req, res) => {
   try {
     const jwt = req.headers.authorization.split(' ')[1];
@@ -6503,7 +6581,7 @@ const approveRequest = async (req, res) => {
     if (req.body.category === 'Discount') {
       const b_juiedts = await sequelize.query(
         `select p.*, iedt.previousid ,iedt.request_no , t."policyNo" ,t.dftxno  
-        select "personType" , "titleID" ,"t_firstName" ,"t_lastName"
+        , "personType" , "titleID" ,"t_firstName" ,"t_lastName"
         ,"idCardType" ,"idCardNo" ,email ,"t_ogName"
         ,"taxNo" ,branch ,"t_branchName"
        
@@ -6512,8 +6590,8 @@ const approveRequest = async (req, res) => {
     left join static_data."b_jupgrs" bj on bj.polid = p.id
     left join  static_data."Transactions" t on t."policyNo" = bj."policyNo" 
         and t."dftxno" = bj."dftxno" and t."seqNo" = bj."seqNo"  and t.status ='N' 
-    join  static_data."Insurees" i on id = :entityID
-     join  static_data."Entities" on id = :entityID
+    join  static_data."Insurees" i on i."insureeCode" = p."insureeCode" and p."insureeVersion" = i."version"
+     join  static_data."Entities"  e on e.id = i."entityID"
         where request_no = :request_no
         and bj.installmenttype ='A'
         and t."transType" ='PREM-IN' 
@@ -6594,6 +6672,7 @@ const approveRequest = async (req, res) => {
   } catch (error) {
 
     await t.rollback();
+    console.log('------ Error approveRequest() ---------');
     console.error(error.message)
     await res.status(500).json({ message: error.message });
   }
@@ -6602,13 +6681,13 @@ module.exports = {
 
   getPolicyListForEndorseDiscin,
   requestEdtDisc,
-requestEdtCommOV,
   getEdTypeCodeAll,
   getPolicyListForEndorseChangeinv,
   getPolicyTransChangeinv,
-  endorseChangeinv,
+  endorseChangeinv, //แก้ไขงวดไม่ต้องมี request approve
 
-  getPolicyListForEndorseComov,
+  getPolicyListForEndorseComov,  
+  requestEdtCommOV,
   endorseComov,
 
   getPolicyListForEndorseAll,
@@ -6617,6 +6696,7 @@ requestEdtCommOV,
   findPolicy,
   getRequestList,
   getDetailRequestList,
+  validateRequestEdt,
   rejectRequest,
   approveRequest,
   requestEdtPolicyDetail

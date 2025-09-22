@@ -3,7 +3,8 @@ const router = express.Router(); //creates a router object
 const ctrl = require("../controllers");
 
 // router.get("path", fucntion);
-router.get('/usergetall', ctrl.auth.showAll);
+router.get('/usergetall', ctrl.auth.usergetall);
+router.get('/lk_role', ctrl.auth.getroleall);
 router.post('/usergetbyname', ctrl.auth.showByUsername);
 router.post('/signup', ctrl.auth.signup);
 router.post('/login', ctrl.auth.login);
